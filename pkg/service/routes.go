@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -13,7 +14,9 @@ func routes(router *chi.Mux, dirData, ext string, bdb *buntdb.DB, index string) 
 		w.Write([]byte("query home"))
 	})
 
-	router.Get("/block", func(w http.ResponseWriter, r *http.Request) {
+	endpoint := fmt.Sprintf("/%s", index)
+
+	router.Get(endpoint, func(w http.ResponseWriter, r *http.Request) {
 		HandleData(w, r, dirData, ext, bdb, index)
 	})
 }
