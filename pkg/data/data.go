@@ -17,7 +17,7 @@ import (
 )
 
 // CheckDirFiles ...
-func CheckDirFiles(dir string) error {
+func CheckDirFiles(dir, ext string) error {
 
 	numFiles := 0
 	progress := progressbar.Default(-1)
@@ -26,8 +26,8 @@ func CheckDirFiles(dir string) error {
 		Unsorted: true,
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
-				ext := filepath.Ext(path)
-				if ext != ".geojson" {
+				fExt := filepath.Ext(path)
+				if fExt != ext {
 					return nil
 				}
 				numFiles++
@@ -123,7 +123,7 @@ func Bounds(pt []float64) string {
 }
 
 // ResolveResults ...
-func ResolveResults(path string, results []string, lonlat string) ([]*geojson.Feature, error) {
+func ResolveResults(path, ext string, results []string, lonlat string) ([]*geojson.Feature, error) {
 
 	features := []*geojson.Feature{}
 
@@ -137,7 +137,7 @@ func ResolveResults(path string, results []string, lonlat string) ([]*geojson.Fe
 
 		fmt.Printf("id: %s\n", id)
 
-		fp := FilePath(path, id)
+		fp := FilePath(path, id, ext)
 
 		fmt.Printf("filepath: %s\n", fp)
 
@@ -167,8 +167,8 @@ func ResolveResults(path string, results []string, lonlat string) ([]*geojson.Fe
 }
 
 // FilePath ...
-func FilePath(path string, id string) string {
-	fn := fmt.Sprintf("%s.geojson", id)
+func FilePath(path, id, ext string) string {
+	fn := fmt.Sprintf("%s%s", id, ext)
 	fp := filepath.Join(path, fn)
 	return fp
 }

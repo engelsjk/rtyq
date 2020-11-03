@@ -11,7 +11,7 @@ import (
 )
 
 // HandleData ...
-func HandleData(w http.ResponseWriter, r *http.Request, bdb *buntdb.DB, dirData, index string) {
+func HandleData(w http.ResponseWriter, r *http.Request, dirData, ext string, bdb *buntdb.DB, index string) {
 
 	// todo: clean up errors written to http
 
@@ -30,7 +30,7 @@ func HandleData(w http.ResponseWriter, r *http.Request, bdb *buntdb.DB, dirData,
 		return
 	}
 
-	features, err := data.ResolveResults(dirData, results, lonlat)
+	features, err := data.ResolveResults(dirData, ext, results, lonlat)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

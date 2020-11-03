@@ -11,11 +11,11 @@ import (
 )
 
 // Start ...
-func Start(port int, bdb *buntdb.DB, dirData, index string) error {
+func Start(port int, dirData, ext string, bdb *buntdb.DB, index string) error {
 
 	router := chi.NewRouter()
 
-	routes(router, bdb, dirData, index)
+	routes(router, dirData, ext, bdb, index)
 
 	fmt.Printf("running locally on :%d\n", port)
 

@@ -14,12 +14,12 @@ import (
 )
 
 // Check ...
-func Check(path string) error {
-	return data.CheckDirFiles(path)
+func Check(path, ext string) error {
+	return data.CheckDirFiles(path, ext)
 }
 
 // Create ...
-func Create(pathDB, dirData, index, fid string) error {
+func Create(dirData, ext, pathDB, index, fid string) error {
 
 	bdb, err := db.Initialize(pathDB, index, true)
 	if err != nil {
@@ -27,7 +27,7 @@ func Create(pathDB, dirData, index, fid string) error {
 	}
 	defer bdb.Close()
 
-	n, err := Generate(bdb, dirData, index, fid)
+	n, err := Generate(bdb, dirData, ext, index, fid)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func Create(pathDB, dirData, index, fid string) error {
 }
 
 // Generate ...
-func Generate(bdb *buntdb.DB, dir, name, key string) (int, error) {
+func Generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
 
 	progress := progressbar.Default(-1)
 	numLoadErrors := 0
@@ -50,8 +50,8 @@ func Generate(bdb *buntdb.DB, dir, name, key string) (int, error) {
 		Unsorted: true,
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
-				ext := filepath.Ext(path)
-				if ext != ".geojson" {
+				fExt := filepath.Ext(path)
+				if fExt != ext {
 					return nil
 				}
 				id, bound, err := data.ReadFile(path, key)
@@ -88,7 +88,7 @@ func Generate(bdb *buntdb.DB, dir, name, key string) (int, error) {
 }
 
 // QueryCold ...
-func QueryCold(pathDB, dirData, index, lonlat string, geojson bool) error {
+func QueryCold(dirData, ext, pathDB, index, lonlat string, geojson bool) error {
 
 	// todo: add input validation w/ errors
 
@@ -105,7 +105,7 @@ func QueryCold(pathDB, dirData, index, lonlat string, geojson bool) error {
 		return err
 	}
 
-	features, err := data.ResolveResults(dirData, results, lonlat)
+	features, err := data.ResolveResults(dirData, ext, results, lonlat)
 	if err != nil {
 		return err
 	}
@@ -122,14 +122,14 @@ func QueryCold(pathDB, dirData, index, lonlat string, geojson bool) error {
 }
 
 // Start ...
-func Start(pathDB, dirData, index string, port int) error {
+func Start(dirData, ext, pathDB, index string, port int) error {
 
 	bdb, err := db.Initialize(pathDB, index, false)
 	if err != nil {
 		return err
 	}
 
-	err = service.Start(port, bdb, dirData, index)
+	err = service.Start(port, dirData, ext, bdb, index)
 	if err != nil {
 		return err
 	}
