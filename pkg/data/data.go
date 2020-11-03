@@ -53,11 +53,15 @@ func CheckDirFiles(dir, ext string) error {
 func ReadFile(path, fid string) (string, string, error) {
 
 	// todo: check if path exists
-	// todo: check if fid exists in properties and type==string
+	// !!! todo: check if fid exists in properties and type==string
 	// todo: separate reading file and parsing id/bounds
 
 	f, err := LoadFeature(path)
 	if err != nil {
+		return "", "", err
+	}
+
+	if _, ok := f.Properties[fid]; !ok {
 		return "", "", err
 	}
 
