@@ -18,11 +18,16 @@ func HandleData(w http.ResponseWriter, r *http.Request, dirData, ext string, bdb
 	lonlat := r.URL.Query().Get("pt")
 
 	if lonlat == "" {
-		http.Error(w, "please provide a lon,lat point", 400)
+		http.Error(w, "please provide a valid lon,lat point", 400)
 		return
 	}
 
 	pt := data.ParseLonLat(lonlat)
+
+	if pt == nil {
+		http.Error(w, "please provide a valid lon,lat point", 400)
+		return
+	}
 
 	results, err := db.Get(bdb, index, data.Bounds(pt))
 	if err != nil {
