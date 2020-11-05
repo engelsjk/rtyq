@@ -114,6 +114,7 @@ func ParseLonLat(s string) []float64 {
 	return []float64{lon, lat}
 }
 
+// LonLat2Point ...
 func LonLat2Point(s string) orb.Point {
 	lonlat := ParseLonLat(s)
 	pt := orb.Point{lonlat[0], lonlat[1]}

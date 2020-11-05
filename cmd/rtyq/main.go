@@ -22,14 +22,6 @@ var (
 	createIndex   = create.Flag("index", "index").Default("data").String()
 	createID      = create.Flag("id", "object id").Default("id").String()
 
-	query        = app.Command("query", "query by lon,lat")
-	queryDataDir = query.Flag("data", "data directory").Default(".").String()
-	queryDataExt = query.Flag("ext", "allowed file extension").Default(".geojson").String()
-	queryDBFile  = query.Flag("db", "database filepath").Default("data.db").String()
-	queryIndex   = query.Flag("index", "index").Default("data").String()
-	queryLonLat  = query.Flag("lonlat", "lon,lat").Required().String()
-	queryGeoJSON = query.Flag("geojson", "geojson output").Default("false").Bool()
-
 	service        = app.Command("service", "start api service")
 	serviceDataDir = service.Flag("data", "data directory").Default(".").String()
 	serviceDataExt = service.Flag("ext", "allowed file extension").Default(".geojson").String()
@@ -57,15 +49,6 @@ func main() {
 		err = rtyq.Check(
 			*checkDataDir,
 			*checkDataExt,
-		)
-	case query.FullCommand():
-		err = rtyq.QueryCold(
-			*queryDataDir,
-			*queryDataExt,
-			*queryDBFile,
-			*queryIndex,
-			*queryLonLat,
-			*queryGeoJSON,
 		)
 	case service.FullCommand():
 		err = rtyq.Start(

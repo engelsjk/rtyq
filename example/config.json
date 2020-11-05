@@ -1,0 +1,16 @@
+{
+    "port": 7660,
+    "stuff": [
+        {
+            "data": {
+                "path": "",
+                "extension": ""
+            },
+            "database": {
+                "path": "",
+                "index": ""
+            }
+        }
+    ]
+}
+

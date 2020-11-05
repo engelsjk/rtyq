@@ -87,40 +87,6 @@ func Generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
 	return numFiles, nil
 }
 
-// QueryCold ...
-func QueryCold(dirData, ext, pathDB, index, lonlat string, geojson bool) error {
-
-	// todo: add input validation w/ errors
-
-	pt := data.ParseLonLat(lonlat) // pt = [lon lat]
-
-	bdb, err := db.Initialize(pathDB, index, false)
-	if err != nil {
-		return err
-	}
-	defer bdb.Close()
-
-	results, err := db.Get(bdb, index, data.Bounds(pt))
-	if err != nil {
-		return err
-	}
-
-	features, err := data.ResolveResults(dirData, ext, results, lonlat)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range features {
-		b, err := f.MarshalJSON()
-		if err != nil {
-			continue
-		}
-		fmt.Println(string(b))
-	}
-
-	return nil
-}
-
 // Start ...
 func Start(dirData, ext, pathDB, index string, port int) error {
 
@@ -129,10 +95,5 @@ func Start(dirData, ext, pathDB, index string, port int) error {
 		return err
 	}
 
-	err = service.Start(port, dirData, ext, bdb, index)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return service.Start(port, dirData, ext, bdb, index)
 }

@@ -75,11 +75,8 @@ func Get(bdb *buntdb.DB, index, bounds string) ([]string, error) {
 		})
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return results, nil
+	return results, err
 }
 
 // ParseResult ...
