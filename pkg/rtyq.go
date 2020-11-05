@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/engelsjk/rtyq/pkg/config"
 	"github.com/engelsjk/rtyq/pkg/data"
 	"github.com/engelsjk/rtyq/pkg/db"
 	"github.com/engelsjk/rtyq/pkg/service"
@@ -88,7 +89,12 @@ func Generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
 }
 
 // Start ...
-func Start(dirData, ext, pathDB, index string, port int) error {
+func Start(pathConfig, dirData, ext, pathDB, index string, port int) error {
+
+	if pathConfig != "" {
+		config.Load(pathConfig)
+		return nil
+	}
 
 	bdb, err := db.Initialize(pathDB, index, false)
 	if err != nil {

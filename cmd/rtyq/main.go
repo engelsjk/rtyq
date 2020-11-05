@@ -22,12 +22,13 @@ var (
 	createIndex   = create.Flag("index", "index").Default("data").String()
 	createID      = create.Flag("id", "object id").Default("id").String()
 
-	service        = app.Command("service", "start api service")
-	serviceDataDir = service.Flag("data", "data directory").Default(".").String()
-	serviceDataExt = service.Flag("ext", "allowed file extension").Default(".geojson").String()
-	serviceDBFile  = service.Flag("db", "database filepath").Default("data.db").String()
-	serviceIndex   = service.Flag("index", "index").Default("data").String()
-	servicePort    = service.Flag("port", "api port").Default("5500").Int()
+	service           = app.Command("service", "start api service")
+	serviceConfigFile = service.Flag("config", "config file").String()
+	serviceDataDir    = service.Flag("data", "data directory").Default(".").String()
+	serviceDataExt    = service.Flag("ext", "allowed file extension").Default(".geojson").String()
+	serviceDBFile     = service.Flag("db", "database filepath").Default("data.db").String()
+	serviceIndex      = service.Flag("index", "index").Default("data").String()
+	servicePort       = service.Flag("port", "api port").Default("5500").Int()
 )
 
 func main() {
@@ -52,6 +53,7 @@ func main() {
 		)
 	case service.FullCommand():
 		err = rtyq.Start(
+			*serviceConfigFile,
 			*serviceDataDir,
 			*serviceDataExt,
 			*serviceDBFile,

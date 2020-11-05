@@ -1,6 +1,6 @@
 {
-    "port": 7660,
-    "stuff": [
+    "port": 8080,
+    "services": [
         {
             "data": {
                 "path": "",
