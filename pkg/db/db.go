@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 	// fmt.Println("initializing db at %s\n", path)
 
-	// todo: check if db file exists at path
+	// todo: check if db file exists at path, then error
 
 	db, err := buntdb.Open(path)
 	if err != nil {
@@ -34,9 +35,7 @@ func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 	}
 
 	dur := time.Since(start)
-	fmt.Printf("time to index db: %s sec\n", dur)
-
-	ListIndexes(db)
+	fmt.Printf("time to index %s: %s sec\n", filepath.Base(path), dur)
 
 	return db, nil
 }

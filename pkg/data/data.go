@@ -45,7 +45,7 @@ func CheckDirFiles(dir, ext string) error {
 	}
 
 	fmt.Println() // print new line after progress bar
-	fmt.Printf("data path: %d files found\n", numFiles)
+	fmt.Printf("files found: %d\n", numFiles)
 	return nil
 }
 
@@ -134,17 +134,11 @@ func ResolveResults(path, ext string, results []string, lonlat string) ([]*geojs
 
 	pt := LonLat2Point(lonlat)
 
-	fmt.Printf("pt: %v\n", pt)
-
 	for _, r := range results {
 
 		_, id, _ := db.ParseResult(r)
 
-		fmt.Printf("id: %s\n", id)
-
 		fp := FilePath(path, id, ext)
-
-		fmt.Printf("filepath: %s\n", fp)
 
 		f, err := LoadFeature(fp)
 		if err != nil {

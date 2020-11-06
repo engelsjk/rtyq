@@ -15,32 +15,63 @@ import (
 )
 
 // Check ...
-func Check(path, ext string) error {
-	return data.CheckDirFiles(path, ext)
-}
-
-// Create ...
-func Create(dirData, ext, pathDB, index, fid string) error {
-
-	bdb, err := db.Initialize(pathDB, index, true)
-	if err != nil {
-		return err
-	}
-	defer bdb.Close()
-
-	n, err := Generate(bdb, dirData, ext, index, fid)
-	if err != nil {
-		return err
+func Check(cfg *config.Config) error {
+	if cfg == nil {
+		return fmt.Errorf("no config provided")
 	}
 
-	fmt.Printf("database created: %d data files processed\n", n)
+	for _, svc := range cfg.Services {
+
+		fmt.Printf("checking data path: %s...", filepath.Base(svc.Data.Path))
+
+		err := data.CheckDirFiles(svc.Data.Path, svc.Data.Extension)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-// Generate ...
-func Generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
+// Create ...
+func Create(cfg *config.Config) error {
+	if cfg == nil {
+		return fmt.Errorf("no config provided")
+	}
+
+	for _, svc := range cfg.Services {
+
+		fmt.Printf("generating database: %s...\n", filepath.Base(svc.Database.Path))
+
+		bdb, err := db.Initialize(svc.Database.Path, svc.Database.Index, true)
+		if err != nil {
+			return err
+		}
+		defer bdb.Close()
+
+		_, err = generate(bdb, svc.Data.Path, svc.Data.Extension, svc.Database.Index, svc.Data.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Service ...
+func Service(cfg *config.Config) error {
+	if cfg == nil {
+		return fmt.Errorf("no config provided")
+	}
+	return service.Start(cfg)
+}
+
+// generate ...
+func generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
+
+	//todo: update numLoadErrors and numUpdateErrors via the ErrorCallback function
 
 	progress := progressbar.Default(-1)
+
 	numLoadErrors := 0
 	numUpdateErrors := 0
 	numFiles := 0
@@ -79,27 +110,11 @@ func Generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
 	fmt.Println() // print new line after progress bar
 
 	dur := time.Since(start)
-	fmt.Printf("time to generate db: %s sec\n", dur)
+	fmt.Printf("time to generate db: %s sec (%d files)\n", dur.String(), numFiles)
 
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
 		fmt.Printf("warning: %d load errors | %d update errors", numLoadErrors, numUpdateErrors)
 	}
 
 	return numFiles, nil
-}
-
-// Start ...
-func Start(pathConfig, dirData, ext, pathDB, index string, port int) error {
-
-	if pathConfig != "" {
-		config.Load(pathConfig)
-		return nil
-	}
-
-	bdb, err := db.Initialize(pathDB, index, false)
-	if err != nil {
-		return err
-	}
-
-	return service.Start(port, dirData, ext, bdb, index)
 }

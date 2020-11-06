@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -12,10 +11,11 @@ type Service struct {
 	Data struct {
 		Path      string `json:"path"`
 		Extension string `json:"extension"`
+		ID        string `json:"id"`
 	} `json:"data"`
 	Database struct {
-		Path      string `json:"path"`
-		Extension string `json:"index"`
+		Path  string `json:"path"`
+		Index string `json:"index"`
 	} `json:"database"`
 }
 
@@ -25,8 +25,20 @@ type Config struct {
 	Services []Service `json:"services"`
 }
 
+// Create ...
+func Create(svc Service) *Config {
+	return &Config{
+		Services: []Service{svc},
+	}
+}
+
 // Load ...
 func Load(path string) (*Config, error) {
+
+	if path == "" {
+		return nil, nil
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -40,9 +52,15 @@ func Load(path string) (*Config, error) {
 
 	var config *Config
 
-	json.Unmarshal(b, &config)
-
-	fmt.Printf("%v\n", config)
+	err = json.Unmarshal(b, &config)
+	if err != nil {
+		return nil, err
+	}
 
 	return config, nil
+}
+
+func Validate(cfg *Config) error {
+	// todo: make sure all required config values are not nil
+	return nil
 }

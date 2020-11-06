@@ -6,18 +6,21 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/engelsjk/rtyq/pkg/config"
 	"github.com/go-chi/chi"
-	"github.com/tidwall/buntdb"
 )
 
 // Start ...
-func Start(port int, dirData, ext string, bdb *buntdb.DB, index string) error {
+func Start(cfg *config.Config) error {
 
 	router := chi.NewRouter()
 
-	routes(router, dirData, ext, bdb, index)
+	err := routes(router, cfg)
+	if err != nil {
+		return err
+	}
 
-	fmt.Printf("running locally on :%d\n", port)
+	fmt.Printf("running %d services locally on :%d\n", len(cfg.Services), cfg.Port)
 
-	return http.ListenAndServe(net.JoinHostPort("", strconv.Itoa(port)), router)
+	return http.ListenAndServe(net.JoinHostPort("", strconv.Itoa(cfg.Port)), router)
 }
