@@ -27,10 +27,17 @@ func routes(router *chi.Mux, cfg *config.Config) error {
 
 		bdbs = append(bdbs, bdbi)
 
+		handler := Handler{
+			DirData:   svc.Data.Path,
+			Extension: svc.Data.Extension,
+			Database:  bdbs[i],
+			Index:     svc.Database.Index,
+		}
+
 		endpoint := fmt.Sprintf("/%s", svc.Database.Index)
 
 		router.Get(endpoint, func(w http.ResponseWriter, r *http.Request) {
-			HandleData(w, r, svc.Data.Path, svc.Data.Extension, bdbs[i], svc.Database.Index)
+			handler.HandleData(w, r)
 		})
 
 		fmt.Printf("endpoint %s set\n", endpoint)

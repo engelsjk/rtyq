@@ -12,6 +12,7 @@ import (
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
+	"github.com/paulmach/orb/maptile"
 	"github.com/paulmach/orb/planar"
 	"github.com/schollz/progressbar/v3"
 )
@@ -93,46 +94,85 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	return f, nil
 }
 
-// ParseLonLat ...
-func ParseLonLat(s string) []float64 {
+// ParseLonLatPoint ...
+func ParseLonLatPoint(p string) (orb.Point, error) {
 
 	// todo: better latlon string validation
 
-	cleanLatLon := strings.ReplaceAll(s, " ", "")
+	cleanLatLon := strings.ReplaceAll(p, " ", "")
 	splitLatLon := strings.Split(cleanLatLon, ",")
 
 	lon, err := strconv.ParseFloat(splitLatLon[0], 64)
 	if err != nil {
-		return nil
+		return orb.Point{}, err
 	}
 
 	lat, err := strconv.ParseFloat(splitLatLon[1], 64)
 	if err != nil {
-		return nil
+		return orb.Point{}, err
 	}
 
-	return []float64{lon, lat}
+	pt := orb.Point{lon, lat}
+
+	return pt, nil
 }
 
-// LonLat2Point ...
-func LonLat2Point(s string) orb.Point {
-	lonlat := ParseLonLat(s)
-	pt := orb.Point{lonlat[0], lonlat[1]}
-	return pt
+// ParseTile ...
+func ParseTile(t string) (maptile.Tile, error) {
+	spl := strings.Split(t, "/")
+
+	if len(spl) != 3 {
+		return maptile.Tile{}, fmt.Errorf("invalid tile")
+	}
+
+	z, err := strconv.ParseInt(spl[0], 10, 32)
+	if err != nil {
+		return maptile.Tile{}, fmt.Errorf("invalid tile")
+	}
+	x, err := strconv.ParseInt(spl[1], 10, 32)
+	if err != nil {
+		return maptile.Tile{}, fmt.Errorf("invalid tile")
+	}
+	y, err := strconv.ParseInt(spl[2], 10, 32)
+	if err != nil {
+		return maptile.Tile{}, fmt.Errorf("invalid tile")
+	}
+
+	tile := maptile.Tile{
+		X: uint32(x),
+		Y: uint32(y),
+		Z: maptile.Zoom(uint32(z)),
+	}
+
+	return tile, nil
 }
 
 // Bounds ...
-func Bounds(pt []float64) string {
-	bounds := fmt.Sprintf("[%f %f]", pt[0], pt[1])
+func Bounds(o interface{}) string {
+
+	var bounds string
+
+	switch v := o.(type) {
+	case orb.Point:
+		bounds = fmt.Sprintf("[%f %f]", v.Lon(), v.Lat())
+	case maptile.Tile:
+		bounds = fmt.Sprintf("[%f %f], [%f %f]",
+			v.Bound().Min.Lon(),
+			v.Bound().Min.Lat(),
+			v.Bound().Max.Lon(),
+			v.Bound().Max.Lat(),
+		)
+	default:
+
+	}
+
 	return bounds
 }
 
-// ResolveResults ...
-func ResolveResults(path, ext string, results []string, lonlat string) ([]*geojson.Feature, error) {
+// ResolvePoint ...
+func ResolvePoint(path, ext string, results []string, pt orb.Point) ([]*geojson.Feature, error) {
 
 	features := []*geojson.Feature{}
-
-	pt := LonLat2Point(lonlat)
 
 	for _, r := range results {
 
@@ -162,6 +202,44 @@ func ResolveResults(path, ext string, results []string, lonlat string) ([]*geojs
 		}
 	}
 
+	return features, nil
+}
+
+// ResolveTile ...
+func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geojson.Feature, error) {
+
+	features := []*geojson.Feature{}
+
+	for _, r := range results {
+
+		_, id, _ := db.ParseResult(r)
+
+		fp := FilePath(path, id, ext)
+
+		f, err := LoadFeature(fp)
+		if err != nil {
+			continue
+		}
+
+		features = append(features, f)
+	}
+
+	return features, nil
+}
+
+// ResolveID ...
+func ResolveID(path, ext string, id string) ([]*geojson.Feature, error) {
+	features := []*geojson.Feature{}
+
+	fp := FilePath(path, id, ext)
+
+	f, err := LoadFeature(fp)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("%v\n", f)
+
+	features = append(features, f)
 	return features, nil
 }
 
