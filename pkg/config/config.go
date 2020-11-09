@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	ErrConfigOpenFile    error = fmt.Errorf("unable to open config file")
-	ErrConfigReadFile    error = fmt.Errorf("unable to read config file")
-	ErrConfigInvalidJSON error = fmt.Errorf("config file is invalid json")
+	ErrConfigOpenFile         error = fmt.Errorf("unable to open config file")
+	ErrConfigReadFile         error = fmt.Errorf("unable to read config file")
+	ErrConfigInvalidStructure error = fmt.Errorf("config file structure is invalid")
 )
 
 // Service ...
@@ -65,7 +65,7 @@ func Load(path string) (*Config, error) {
 
 	err = json.Unmarshal(b, &config)
 	if err != nil {
-		return nil, ErrConfigInvalidJSON
+		return nil, ErrConfigInvalidStructure
 	}
 
 	err = Validate(config)
