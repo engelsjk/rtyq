@@ -24,19 +24,19 @@ func ResolvePoint(path, ext string, results []string, pt orb.Point) ([]*geojson.
 			continue
 		}
 
-		ptInFeature := false
+		isPtInFeature := false
 
 		geom := f.Geometry
 		switch g := geom.(type) {
 		case orb.Polygon:
-			ptInFeature = planar.PolygonContains(g, pt)
+			isPtInFeature = planar.PolygonContains(g, pt)
 		case orb.MultiPolygon:
-			ptInFeature = planar.MultiPolygonContains(g, pt)
+			isPtInFeature = planar.MultiPolygonContains(g, pt)
 		default:
 			continue
 		}
 
-		if ptInFeature {
+		if isPtInFeature {
 			features = append(features, f)
 		}
 	}
@@ -60,7 +60,25 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 			continue
 		}
 
-		features = append(features, f)
+		ring := tile.Bound().ToRing()
+
+		isTileCornerInFeature := false
+		geom := f.Geometry
+
+		for _, pt := range ring {
+			switch g := geom.(type) {
+			case orb.Polygon:
+				isTileCornerInFeature = planar.PolygonContains(g, pt)
+			case orb.MultiPolygon:
+				isTileCornerInFeature = planar.MultiPolygonContains(g, pt)
+			default:
+				continue
+			}
+			if isTileCornerInFeature {
+				features = append(features, f)
+				break
+			}
+		}
 	}
 
 	return features, nil
