@@ -20,7 +20,7 @@ func Check(cfg *config.Config) error {
 		return fmt.Errorf("no config provided")
 	}
 
-	for _, svc := range cfg.Services {
+	for _, svc := range cfg.Sets {
 
 		fmt.Printf("checking data path: %s...", filepath.Base(svc.Data.Path))
 
@@ -38,7 +38,7 @@ func Create(cfg *config.Config) error {
 		return fmt.Errorf("no config provided")
 	}
 
-	for _, svc := range cfg.Services {
+	for _, svc := range cfg.Sets {
 
 		err := db.Create(svc.Database.Path)
 		if err != nil {

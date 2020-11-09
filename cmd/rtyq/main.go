@@ -31,6 +31,7 @@ var (
 	serviceDataExt    = service.Flag("ext", "allowed file extension").Default(".geojson").String()
 	serviceDBFile     = service.Flag("db", "database filepath").Default("data.db").String()
 	serviceIndex      = service.Flag("index", "index").Default("data").String()
+	serviceZoomLimit  = service.Flag("zoomlimit", "zoomlimit").Int()
 	servicePort       = service.Flag("port", "api port").Default("5500").Int()
 )
 
@@ -48,7 +49,7 @@ func main() {
 		}
 
 		if cfg == nil {
-			svc := config.Service{}
+			svc := config.Set{}
 			svc.Data.Path = *checkDataDir
 			svc.Data.Extension = *checkDataExt
 			cfg = config.New(svc)
@@ -69,13 +70,13 @@ func main() {
 		}
 
 		if cfg == nil {
-			svc := config.Service{}
-			svc.Data.Path = *createDataDir
-			svc.Data.Extension = *createDataExt
-			svc.Data.ID = *createDataID
-			svc.Database.Path = *createDBFile
-			svc.Database.Index = *createIndex
-			cfg = config.New(svc)
+			set := config.Set{}
+			set.Data.Path = *createDataDir
+			set.Data.Extension = *createDataExt
+			set.Data.ID = *createDataID
+			set.Database.Path = *createDBFile
+			set.Database.Index = *createIndex
+			cfg = config.New(set)
 		}
 
 		err = rtyq.Create(cfg)
@@ -93,12 +94,13 @@ func main() {
 		}
 
 		if cfg == nil {
-			svc := config.Service{}
-			svc.Data.Path = *serviceDataDir
-			svc.Data.Extension = *serviceDataExt
-			svc.Database.Path = *serviceDBFile
-			svc.Database.Index = *serviceIndex
-			cfg = config.New(svc)
+			set := config.Set{}
+			set.Data.Path = *serviceDataDir
+			set.Data.Extension = *serviceDataExt
+			set.Database.Path = *serviceDBFile
+			set.Database.Index = *serviceIndex
+			set.Service.ZoomLimit = *serviceZoomLimit
+			cfg = config.New(set)
 			cfg.Port = *servicePort
 		}
 

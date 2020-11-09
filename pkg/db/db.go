@@ -10,6 +10,7 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
+// Create ...
 func Create(path string) error {
 	_, err := os.Stat(path)
 

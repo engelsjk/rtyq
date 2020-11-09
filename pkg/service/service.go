@@ -20,7 +20,7 @@ func Start(cfg *config.Config) error {
 		return err
 	}
 
-	fmt.Printf("running %d services locally on :%d\n", len(cfg.Services), cfg.Port)
+	fmt.Printf("running %d services locally on :%d\n", len(cfg.Sets), cfg.Port)
 
 	return http.ListenAndServe(net.JoinHostPort("", strconv.Itoa(cfg.Port)), router)
 }

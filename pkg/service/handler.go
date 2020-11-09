@@ -16,15 +16,17 @@ type Handler struct {
 	Extension string
 	Database  *buntdb.DB
 	Index     string
+	ZoomLimit int
 	Error     error
 }
 
 var (
-	ErrBadQueryParam  error = fmt.Errorf(`{"error": "please provide a valid query parameter (pt, tile or id)"}`)
-	ErrInvalidPoint   error = fmt.Errorf(`{"error": "please provide a valid lon,lat point"}`)
-	ErrInvalidTile    error = fmt.Errorf(`{"error": "please provide a valid z/x/y tile"}`)
-	ErrDatabaseGet    error = fmt.Errorf(`{"error": "unable to get data from db"}`)
-	ErrResolveRequest error = fmt.Errorf(`{"error": "unable to resolve request"}`)
+	ErrBadQueryParam         error = fmt.Errorf(`{"error": "please provide a valid query parameter (pt, tile or id)"}`)
+	ErrInvalidPoint          error = fmt.Errorf(`{"error": "please provide a valid lon,lat point"}`)
+	ErrInvalidTile           error = fmt.Errorf(`{"error": "please provide a valid z/x/y tile"}`)
+	ErrTileZoomLimitExceeded error = fmt.Errorf(`{"error": "tile request zoom limit exceeded"}`)
+	ErrDatabaseGet           error = fmt.Errorf(`{"error": "unable to get data from db"}`)
+	ErrResolveRequest        error = fmt.Errorf(`{"error": "unable to resolve request"}`)
 )
 
 // HandleData ...
@@ -46,8 +48,6 @@ func (h *Handler) HandleData(w http.ResponseWriter, r *http.Request) {
 
 	var features []*geojson.Feature
 
-	fmt.Printf("%v\n", id)
-
 	if pt != "" {
 		features = h.getFeaturesFromPoint(pt)
 	} else if tile != "" {
@@ -65,6 +65,9 @@ func (h *Handler) HandleData(w http.ResponseWriter, r *http.Request) {
 	case ErrInvalidTile:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(ErrInvalidTile.Error()))
+	case ErrTileZoomLimitExceeded:
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(ErrTileZoomLimitExceeded.Error()))
 	case ErrDatabaseGet:
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(ErrDatabaseGet.Error()))
@@ -132,6 +135,13 @@ func (h *Handler) getFeaturesFromTile(t string) []*geojson.Feature {
 	if err != nil {
 		h.Error = ErrInvalidTile
 		return nil
+	}
+
+	if h.ZoomLimit != 0 {
+		if int(tile.Z) < h.ZoomLimit {
+			h.Error = ErrTileZoomLimitExceeded
+			return nil
+		}
 	}
 
 	results, err := db.Get(h.Database, h.Index, data.Bounds(tile))

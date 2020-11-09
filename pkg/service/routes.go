@@ -10,6 +10,7 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
+// routes ...
 func routes(router *chi.Mux, cfg *config.Config) error {
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -18,9 +19,9 @@ func routes(router *chi.Mux, cfg *config.Config) error {
 
 	bdbs := []*buntdb.DB{}
 
-	for i, svc := range cfg.Services {
+	for i, set := range cfg.Sets {
 
-		bdbi, err := db.Initialize(svc.Database.Path, svc.Database.Index, false)
+		bdbi, err := db.Initialize(set.Database.Path, set.Database.Index, false)
 		if err != nil {
 			return err
 		}
@@ -28,13 +29,14 @@ func routes(router *chi.Mux, cfg *config.Config) error {
 		bdbs = append(bdbs, bdbi)
 
 		handler := Handler{
-			DirData:   svc.Data.Path,
-			Extension: svc.Data.Extension,
+			DirData:   set.Data.Path,
+			Extension: set.Data.Extension,
 			Database:  bdbs[i],
-			Index:     svc.Database.Index,
+			Index:     set.Database.Index,
+			ZoomLimit: set.Service.ZoomLimit,
 		}
 
-		endpoint := fmt.Sprintf("/%s", svc.Database.Index)
+		endpoint := fmt.Sprintf("/%s", set.Service.Path)
 
 		router.Get(endpoint, func(w http.ResponseWriter, r *http.Request) {
 			handler.HandleData(w, r)
