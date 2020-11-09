@@ -1,8 +1,6 @@
 package data
 
 import (
-	"fmt"
-
 	"github.com/engelsjk/rtyq/pkg/db"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
@@ -78,7 +76,6 @@ func ResolveID(path, ext string, id string) ([]*geojson.Feature, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%v\n", f)
 
 	features = append(features, f)
 	return features, nil
