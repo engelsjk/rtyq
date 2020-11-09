@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	ErrLoadConfigFile error = fmt.Errorf("unable to load config file")
+	ErrConfigOpenFile    error = fmt.Errorf("unable to open config file")
+	ErrConfigReadFile    error = fmt.Errorf("unable to read config file")
+	ErrConfigInvalidJSON error = fmt.Errorf("config file is invalid json")
 )
 
 // Service ...
@@ -50,20 +52,20 @@ func Load(path string) (*Config, error) {
 
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, ErrLoadConfigFile
+		return nil, ErrConfigOpenFile
 	}
 	defer file.Close()
 
 	b, err := ioutil.ReadAll(file)
 	if err != nil {
-		return nil, ErrLoadConfigFile
+		return nil, ErrConfigReadFile
 	}
 
 	var config *Config
 
 	err = json.Unmarshal(b, &config)
 	if err != nil {
-		return nil, ErrLoadConfigFile
+		return nil, ErrConfigInvalidJSON
 	}
 
 	err = Validate(config)
