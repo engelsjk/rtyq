@@ -38,14 +38,12 @@ func main() {
 
 	kingpin.Version("0.0.1")
 
-	var err error
-
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case check.FullCommand():
 
 		cfg, err := config.Load(*checkConfigFile)
 		if err != nil {
-			fmt.Printf("errors: %s\n", err.Error())
+			fmt.Printf("error: %s\n", err.Error())
 			break
 		}
 
@@ -53,16 +51,20 @@ func main() {
 			svc := config.Service{}
 			svc.Data.Path = *checkDataDir
 			svc.Data.Extension = *checkDataExt
-			cfg = config.Create(svc)
+			cfg = config.New(svc)
 		}
 
 		err = rtyq.Check(cfg)
+		if err != nil {
+			fmt.Printf("error: %s\n", err.Error())
+			return
+		}
 
 	case create.FullCommand():
 
 		cfg, err := config.Load(*createConfigFile)
 		if err != nil {
-			fmt.Printf("errors: %s\n", err.Error())
+			fmt.Printf("error: %s\n", err.Error())
 			break
 		}
 
@@ -73,16 +75,20 @@ func main() {
 			svc.Data.ID = *createDataID
 			svc.Database.Path = *createDBFile
 			svc.Database.Index = *createIndex
-			cfg = config.Create(svc)
+			cfg = config.New(svc)
 		}
 
 		err = rtyq.Create(cfg)
+		if err != nil {
+			fmt.Printf("error: %s\n", err.Error())
+			return
+		}
 
 	case service.FullCommand():
 
 		cfg, err := config.Load(*serviceConfigFile)
 		if err != nil {
-			fmt.Printf("errors: %s\n", err.Error())
+			fmt.Printf("error: %s\n", err.Error())
 			break
 		}
 
@@ -92,15 +98,14 @@ func main() {
 			svc.Data.Extension = *serviceDataExt
 			svc.Database.Path = *serviceDBFile
 			svc.Database.Index = *serviceIndex
-			cfg = config.Create(svc)
+			cfg = config.New(svc)
 			cfg.Port = *servicePort
 		}
 
 		err = rtyq.Service(cfg)
-	}
-
-	if err != nil {
-		fmt.Printf("errors: %s\n", err.Error())
-		return
+		if err != nil {
+			fmt.Printf("error: %s\n", err.Error())
+			return
+		}
 	}
 }

@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -9,11 +10,33 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
+func Create(path string) error {
+	_, err := os.Stat(path)
+
+	if !os.IsNotExist(err) {
+		return fmt.Errorf("database file (%s) already exists", filepath.Base(path))
+	}
+
+	_, err = buntdb.Open(path)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Initialize ...
 func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 	// fmt.Println("initializing db at %s\n", path)
 
-	// todo: check if db file exists at path, then error
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return nil, fmt.Errorf("database file (%s) does not exist", filepath.Base(path))
+	}
+
+	if info.IsDir() {
+		return nil, fmt.Errorf("database file (%s) is a dir, needs to be a file", filepath.Base(path))
+	}
 
 	db, err := buntdb.Open(path)
 	if err != nil {

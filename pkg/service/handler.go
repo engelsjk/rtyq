@@ -123,6 +123,7 @@ func (h *Handler) getFeaturesFromPoint(pt string) []*geojson.Feature {
 }
 
 func (h *Handler) getFeaturesFromTile(t string) []*geojson.Feature {
+
 	if h.Error != nil {
 		return nil
 	}
@@ -149,6 +150,13 @@ func (h *Handler) getFeaturesFromTile(t string) []*geojson.Feature {
 }
 
 func (h *Handler) getFeaturesFromID(id string) []*geojson.Feature {
+
+	if h.Error != nil {
+		return nil
+	}
+
+	id = data.ParseID(id)
+
 	features, err := data.ResolveID(h.DirData, h.Extension, id)
 	if err != nil {
 		h.Error = ErrResolveRequest

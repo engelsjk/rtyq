@@ -26,7 +26,7 @@ type Config struct {
 }
 
 // Create ...
-func Create(svc Service) *Config {
+func New(svc Service) *Config {
 	return &Config{
 		Services: []Service{svc},
 	}

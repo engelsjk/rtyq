@@ -40,13 +40,18 @@ func Create(cfg *config.Config) error {
 
 	for _, svc := range cfg.Services {
 
-		fmt.Printf("generating database: %s...\n", filepath.Base(svc.Database.Path))
+		err := db.Create(svc.Database.Path)
+		if err != nil {
+			return err
+		}
 
 		bdb, err := db.Initialize(svc.Database.Path, svc.Database.Index, true)
 		if err != nil {
 			return err
 		}
 		defer bdb.Close()
+
+		fmt.Printf("generating database: %s...\n", filepath.Base(svc.Database.Path))
 
 		_, err = generate(bdb, svc.Data.Path, svc.Data.Extension, svc.Database.Index, svc.Data.ID)
 		if err != nil {

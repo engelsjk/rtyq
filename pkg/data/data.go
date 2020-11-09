@@ -5,15 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
-	"github.com/engelsjk/rtyq/pkg/db"
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
-	"github.com/paulmach/orb/planar"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -94,59 +90,6 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	return f, nil
 }
 
-// ParseLonLatPoint ...
-func ParseLonLatPoint(p string) (orb.Point, error) {
-
-	// todo: better latlon string validation
-
-	cleanLatLon := strings.ReplaceAll(p, " ", "")
-	splitLatLon := strings.Split(cleanLatLon, ",")
-
-	lon, err := strconv.ParseFloat(splitLatLon[0], 64)
-	if err != nil {
-		return orb.Point{}, err
-	}
-
-	lat, err := strconv.ParseFloat(splitLatLon[1], 64)
-	if err != nil {
-		return orb.Point{}, err
-	}
-
-	pt := orb.Point{lon, lat}
-
-	return pt, nil
-}
-
-// ParseTile ...
-func ParseTile(t string) (maptile.Tile, error) {
-	spl := strings.Split(t, "/")
-
-	if len(spl) != 3 {
-		return maptile.Tile{}, fmt.Errorf("invalid tile")
-	}
-
-	z, err := strconv.ParseInt(spl[0], 10, 32)
-	if err != nil {
-		return maptile.Tile{}, fmt.Errorf("invalid tile")
-	}
-	x, err := strconv.ParseInt(spl[1], 10, 32)
-	if err != nil {
-		return maptile.Tile{}, fmt.Errorf("invalid tile")
-	}
-	y, err := strconv.ParseInt(spl[2], 10, 32)
-	if err != nil {
-		return maptile.Tile{}, fmt.Errorf("invalid tile")
-	}
-
-	tile := maptile.Tile{
-		X: uint32(x),
-		Y: uint32(y),
-		Z: maptile.Zoom(uint32(z)),
-	}
-
-	return tile, nil
-}
-
 // Bounds ...
 func Bounds(o interface{}) string {
 
@@ -167,80 +110,6 @@ func Bounds(o interface{}) string {
 	}
 
 	return bounds
-}
-
-// ResolvePoint ...
-func ResolvePoint(path, ext string, results []string, pt orb.Point) ([]*geojson.Feature, error) {
-
-	features := []*geojson.Feature{}
-
-	for _, r := range results {
-
-		_, id, _ := db.ParseResult(r)
-
-		fp := FilePath(path, id, ext)
-
-		f, err := LoadFeature(fp)
-		if err != nil {
-			continue
-		}
-
-		ptInFeature := false
-
-		geom := f.Geometry
-		switch g := geom.(type) {
-		case orb.Polygon:
-			ptInFeature = planar.PolygonContains(g, pt)
-		case orb.MultiPolygon:
-			ptInFeature = planar.MultiPolygonContains(g, pt)
-		default:
-			continue
-		}
-
-		if ptInFeature {
-			features = append(features, f)
-		}
-	}
-
-	return features, nil
-}
-
-// ResolveTile ...
-func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geojson.Feature, error) {
-
-	features := []*geojson.Feature{}
-
-	for _, r := range results {
-
-		_, id, _ := db.ParseResult(r)
-
-		fp := FilePath(path, id, ext)
-
-		f, err := LoadFeature(fp)
-		if err != nil {
-			continue
-		}
-
-		features = append(features, f)
-	}
-
-	return features, nil
-}
-
-// ResolveID ...
-func ResolveID(path, ext string, id string) ([]*geojson.Feature, error) {
-	features := []*geojson.Feature{}
-
-	fp := FilePath(path, id, ext)
-
-	f, err := LoadFeature(fp)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Printf("%v\n", f)
-
-	features = append(features, f)
-	return features, nil
 }
 
 // FilePath ...
