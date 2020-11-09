@@ -60,25 +60,7 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 			continue
 		}
 
-		ring := tile.Bound().ToRing()
-
-		isTileCornerInFeature := false
-		geom := f.Geometry
-
-		for _, pt := range ring {
-			switch g := geom.(type) {
-			case orb.Polygon:
-				isTileCornerInFeature = planar.PolygonContains(g, pt)
-			case orb.MultiPolygon:
-				isTileCornerInFeature = planar.MultiPolygonContains(g, pt)
-			default:
-				continue
-			}
-			if isTileCornerInFeature {
-				features = append(features, f)
-				break
-			}
-		}
+		features = append(features, f)
 	}
 
 	return features, nil
