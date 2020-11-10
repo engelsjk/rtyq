@@ -51,6 +51,8 @@ func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 	name := index
 	pattern := fmt.Sprintf("%s:*", index)
 
+	fmt.Printf("running spatial index on %s...\n", filepath.Base(path))
+
 	start := time.Now()
 
 	err = db.CreateSpatialIndex(name, pattern, buntdb.IndexRect)
@@ -59,7 +61,7 @@ func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 	}
 
 	dur := time.Since(start)
-	fmt.Printf("time to index %s: %s sec\n", filepath.Base(path), dur)
+	fmt.Printf("time to index: %s sec\n", dur)
 
 	return db, nil
 }
