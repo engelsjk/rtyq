@@ -77,6 +77,8 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 
 		// todo: is this too slow if original tile is entirely contained within the polygon?
 		// todo: how to avoid slowdown caused by looping through large geometry at low zoom levels?
+		// todo: maybe use tile.Center() and do a contain check? if true then skip tilecover
+		// todo: but does that work for non-polygon or non-multipolygon cases?
 
 		tileSet := tilecover.Geometry(f.Geometry, newZoom)
 		for tile := range tileSet {
