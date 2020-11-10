@@ -28,7 +28,8 @@ func Create(path string) error {
 
 // Initialize ...
 func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
-	// fmt.Println("initializing db at %s\n", path)
+
+	fmt.Printf("initializing %s (index '%s')\n", filepath.Base(path), index)
 
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
@@ -51,7 +52,7 @@ func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 	name := index
 	pattern := fmt.Sprintf("%s:*", index)
 
-	fmt.Printf("running spatial index on %s...\n", filepath.Base(path))
+	fmt.Printf("running spatial index...\n")
 
 	start := time.Now()
 
