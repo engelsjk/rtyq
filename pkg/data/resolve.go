@@ -54,15 +54,17 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 	var newZoom maptile.Zoom
 	features := []*geojson.Feature{}
 
-	zoomInt := int(tile.Z)
+	// uptile and get min/max tiles
 
+	zoomInt := int(tile.Z)
 	if zoomInt+zoomOffset > zoomMax {
 		newZoom = maptile.Zoom(zoomMax)
 	} else {
 		newZoom = maptile.Zoom(zoomInt + zoomOffset)
 	}
-
 	minTile, maxTile := tile.Range(newZoom)
+
+	// iterate  over results...
 
 	for _, r := range results {
 
@@ -75,12 +77,28 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 			continue
 		}
 
-		// todo: is this too slow if original tile is entirely contained within the polygon?
-		// todo: how to avoid slowdown caused by looping through large geometry at low zoom levels?
-		// todo: maybe use tile.Center() and do a contain check? if true then skip tilecover
-		// todo: but does that work for non-polygon or non-multipolygon cases?
+		// check if tile center is in feature (only for polygons and multipolygons)...
 
-		tileSet := tilecover.Geometry(f.Geometry, newZoom)
+		tileCenter := tile.Bound().Center()
+		isTileCenterInFeature := false
+		geom := f.Geometry
+		switch g := geom.(type) {
+		case orb.Polygon:
+			isTileCenterInFeature = planar.PolygonContains(g, tileCenter)
+		case orb.MultiPolygon:
+			isTileCenterInFeature = planar.MultiPolygonContains(g, tileCenter)
+		}
+		if isTileCenterInFeature {
+			features = append(features, f)
+			continue
+		}
+
+		// todo: does the above work for non-polygon or non-multipolygon cases?
+		// todo: are points and linestrings/multilinestrings handled by the below?
+
+		// iterate over feature tileset at uptile zoom level, and check for any tile matchs
+
+		tileSet := tilecover.Geometry(geom, newZoom)
 		for tile := range tileSet {
 			if (tile.X >= minTile.X && tile.Y >= minTile.Y) &&
 				(tile.X <= maxTile.X && tile.Y <= maxTile.Y) {
