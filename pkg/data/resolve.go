@@ -5,6 +5,7 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
+	"github.com/paulmach/orb/maptile/tilecover"
 	"github.com/paulmach/orb/planar"
 )
 
@@ -47,7 +48,21 @@ func ResolvePoint(path, ext string, results []string, pt orb.Point) ([]*geojson.
 // ResolveTile ...
 func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geojson.Feature, error) {
 
+	var zoomOffset = 5
+	var zoomMax = 22
+
+	var newZoom maptile.Zoom
 	features := []*geojson.Feature{}
+
+	zoomInt := int(tile.Z)
+
+	if zoomInt+zoomOffset > zoomMax {
+		newZoom = maptile.Zoom(zoomMax)
+	} else {
+		newZoom = maptile.Zoom(zoomInt + zoomOffset)
+	}
+
+	minTile, maxTile := tile.Range(newZoom)
 
 	for _, r := range results {
 
@@ -60,7 +75,17 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 			continue
 		}
 
-		features = append(features, f)
+		// todo: is this too slow if original tile is entirely contained within the polygon?
+		// todo: how to avoid slowdown caused by looping through large geometry at low zoom levels?
+
+		tileSet := tilecover.Geometry(f.Geometry, newZoom)
+		for tile := range tileSet {
+			if (tile.X >= minTile.X && tile.Y >= minTile.Y) &&
+				(tile.X <= maxTile.X && tile.Y <= maxTile.Y) {
+				features = append(features, f)
+				break
+			}
+		}
 	}
 
 	return features, nil
