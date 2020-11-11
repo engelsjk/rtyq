@@ -39,7 +39,7 @@ while read p; do
 done < $IN
 ```
 
-We could also use a custom CLI, ```gjsplit```, that I've built for this task in the [engelsjk/gjfunks](https://github.com/engelsjk/gjfunks) package.
+We could also use a custom CLI, ```gjsplit```, in the [engelsjk/gjfunks](https://github.com/engelsjk/gjfunks) package that I've built for this exact task.
 
 ```gjsplit --outkey="GEOID" --nd tl_2019_us_state.ndgeojson```
 
