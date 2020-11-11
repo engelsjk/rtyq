@@ -8,12 +8,15 @@ import (
 )
 
 var (
-	ErrConfigOpenFile         error = fmt.Errorf("unable to open config file")
-	ErrConfigReadFile         error = fmt.Errorf("unable to read config file")
+	// ErrConfigOpenFile error is returned when the config file cannot be opened
+	ErrConfigOpenFile error = fmt.Errorf("unable to open config file")
+	// ErrConfigReadFile error is reutnred when the config file cannot be read
+	ErrConfigReadFile error = fmt.Errorf("unable to read config file")
+	// ErrConfigInvalidStructure error is returned when the config file does not have the required data structure
 	ErrConfigInvalidStructure error = fmt.Errorf("config file structure is invalid")
 )
 
-// Service ...
+// Set is the combined set config (data/database/service) for one data type
 type Set struct {
 	Data struct {
 		Path      string `json:"path"`
@@ -30,20 +33,21 @@ type Set struct {
 	} `json:"service"`
 }
 
-// Config ...
+// Config defines the array of data sets to create and run,
+// along with the single port to run the service on
 type Config struct {
 	Port int   `json:"port"`
 	Sets []Set `json:"sets"`
 }
 
-// New ...
+// New creates a new config from a single data set
 func New(set Set) *Config {
 	return &Config{
 		Sets: []Set{set},
 	}
 }
 
-// Load ...
+// Load creates a new config from a JSON file
 func Load(path string) (*Config, error) {
 
 	if path == "" {
@@ -76,7 +80,7 @@ func Load(path string) (*Config, error) {
 	return config, nil
 }
 
-// Validate ...
+// Validate checks a config to ensure that it is properly instantiated
 func Validate(cfg *Config) error {
 
 	if cfg == nil {

@@ -1,9 +1,9 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"path/filepath"
 
 	"github.com/engelsjk/rtyq/pkg/config"
 	"github.com/engelsjk/rtyq/pkg/db"
@@ -11,16 +11,23 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
+// Message will be served as the home endpoint to the service
+type Message struct {
+	Status    string   `json:"status"`
+	Endpoints []string `json:"endpoints"`
+}
+
 // routes ...
-func routes(router *chi.Mux, cfg *config.Config) error {
+func setRoutes(router *chi.Mux, cfg *config.Config) error {
 
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("rtyq home"))
-		// todo: add list of endpoints
-	})
+	var (
+		ErrUnableToWriteHomeMessage error = fmt.Errorf("unable to write home message")
+	)
 
-	bdbs := []*buntdb.DB{}
+	endpoints := []string{} // initialize endpoint list
+	bdbs := []*buntdb.DB{}  // initialize slice of db pointers
 
+	// iterate over data sets (data/database/service), initialize db and set endpoint
 	for i, set := range cfg.Sets {
 
 		fmt.Println("%************%")
@@ -42,12 +49,28 @@ func routes(router *chi.Mux, cfg *config.Config) error {
 
 		endpoint := fmt.Sprintf("/%s", set.Service.Path)
 
+		endpoints = append(endpoints, endpoint)
+
 		router.Get(endpoint, func(w http.ResponseWriter, r *http.Request) {
 			handler.HandleData(w, r)
 		})
-
-		fmt.Printf("endpoint for %s at %s\n", filepath.Base(set.Database.Path), endpoint)
 	}
+
+	// write message to home /
+
+	message := Message{
+		Status:    "running",
+		Endpoints: endpoints,
+	}
+
+	b, err := json.Marshal(message)
+	if err != nil {
+		return ErrUnableToWriteHomeMessage
+	}
+
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(b)
+	})
 
 	return nil
 }

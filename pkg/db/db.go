@@ -12,15 +12,23 @@ import (
 
 // Create ...
 func Create(path string) error {
+
+	fn := filepath.Base(path)
+
+	var (
+		ErrDatabaseFileAlreadyExists error = fmt.Errorf("database file (%s) already exists", filepath.Base(path))
+		ErrDatabaseFileCreate        error = fmt.Errorf("unable to create database file (%s)", fn)
+	)
+
 	_, err := os.Stat(path)
 
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("database file (%s) already exists", filepath.Base(path))
+		return ErrDatabaseFileAlreadyExists
 	}
 
 	_, err = buntdb.Open(path)
 	if err != nil {
-		return err
+		return ErrDatabaseFileCreate
 	}
 
 	return nil
@@ -29,20 +37,29 @@ func Create(path string) error {
 // Initialize ...
 func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 
+	fn := filepath.Base(path)
+
+	var (
+		ErrDatabaseFileDoesNotExist error = fmt.Errorf("database file (%s) does not exist", fn)
+		ErrDatabaseFileIsADir       error = fmt.Errorf("database file (%s) is a dir, needs to be a file", fn)
+		ErrDatabaseFileOpen         error = fmt.Errorf("unable to open database file (%s)", fn)
+		ErrSpatialIndexCreate       error = fmt.Errorf("unable to spatially index database file (%s)", fn)
+	)
+
 	fmt.Printf("initializing %s (index '%s')\n", filepath.Base(path), index)
 
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		return nil, fmt.Errorf("database file (%s) does not exist", filepath.Base(path))
+		return nil, ErrDatabaseFileDoesNotExist
 	}
 
 	if info.IsDir() {
-		return nil, fmt.Errorf("database file (%s) is a dir, needs to be a file", filepath.Base(path))
+		return nil, ErrDatabaseFileIsADir
 	}
 
 	db, err := buntdb.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, ErrDatabaseFileOpen
 	}
 
 	if skipIndex {
@@ -58,7 +75,7 @@ func Initialize(path, index string, skipIndex bool) (*buntdb.DB, error) {
 
 	err = db.CreateSpatialIndex(name, pattern, buntdb.IndexRect)
 	if err != nil {
-		return nil, err
+		return nil, ErrSpatialIndexCreate
 	}
 
 	dur := time.Since(start)

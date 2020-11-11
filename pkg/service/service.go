@@ -10,19 +10,25 @@ import (
 	"github.com/go-chi/chi"
 )
 
+// Service ...
+var Service struct {
+	Status  string
+	Message map[string]interface{}
+}
+
 // Start ...
 func Start(cfg *config.Config) error {
 
 	router := chi.NewRouter()
 
-	err := routes(router, cfg)
+	err := setRoutes(router, cfg)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("%************%")
 
-	fmt.Printf("running %d services locally on localhost:%d\n", len(cfg.Sets), cfg.Port)
+	fmt.Printf("starting %d services locally on localhost:%d\n", len(cfg.Sets), cfg.Port)
 
 	return http.ListenAndServe(net.JoinHostPort("", strconv.Itoa(cfg.Port)), router)
 }

@@ -73,13 +73,14 @@ func Service(cfg *config.Config) error {
 // generate ...
 func generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
 
-	//todo: update numLoadErrors and numUpdateErrors via the ErrorCallback function
-
-	progress := progressbar.Default(-1)
+	// todo: update numLoadErrors and numUpdateErrors via the ErrorCallback function
+	// warning below is never triggered since these vars aren't updating properly
 
 	numLoadErrors := 0
 	numUpdateErrors := 0
 	numFiles := 0
+
+	progress := progressbar.Default(-1)
 
 	start := time.Now()
 
@@ -112,9 +113,9 @@ func generate(bdb *buntdb.DB, dir, ext, name, key string) (int, error) {
 		return 0, err
 	}
 
-	fmt.Println() // print new line after progress bar
-
 	dur := time.Since(start)
+
+	fmt.Println() // print new line after progress bar
 	fmt.Printf("time to generate db: %s sec (%d files)\n", dur.String(), numFiles)
 
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
