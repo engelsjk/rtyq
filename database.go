@@ -44,13 +44,14 @@ func InitDB(path string) (*DB, error) {
 	}
 
 	bdb, err := db.Create()
+
+	if err == ErrDatabaseFileAlreadyExists {
+		return nil, err
+	}
+
 	if err == nil {
 		db.db = bdb
 		return db, nil
-	}
-
-	if err != ErrDatabaseFileAlreadyExists {
-		return nil, err
 	}
 
 	bdb, err = db.Load()

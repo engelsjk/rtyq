@@ -62,13 +62,13 @@ func Create(cfg *Config) error {
 
 		db, err := InitDB(layer.Database.Path)
 		if err != nil {
-			fmt.Printf("error : layer (%s) : %s\n", layer.Name, err.Error())
+			fmt.Printf("warning : %s : skipping layer (%s)\n", err.Error(), layer.Name)
 			continue
 		}
 
 		data, err := InitData(layer.Data.Path, layer.Data.Extension, layer.Data.ID)
 		if err != nil {
-			fmt.Printf("error : layer (%s) : %s\n", layer.Name, err.Error())
+			fmt.Printf("warning : layer (%s) : %s\n", layer.Name, err.Error())
 			continue
 		}
 
@@ -76,7 +76,7 @@ func Create(cfg *Config) error {
 
 		_, err = AddDataToDatabaseWithIndex(data, db, layer.Database.Index)
 		if err != nil {
-			fmt.Printf("error : layer (%s) : %s\n", layer.Name, err.Error())
+			fmt.Printf("warning : layer (%s) : %s\n", layer.Name, err.Error())
 			continue
 		}
 	}

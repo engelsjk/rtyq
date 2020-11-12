@@ -122,6 +122,8 @@ func (d *Data) ReadFile(path string) (string, string, error) {
 		return "", "", ErrMissingFeatureID
 	}
 
+	// todo: remove this switch type and error if id type != string
+
 	var idStr string
 	switch v := id.(type) {
 	case string:
