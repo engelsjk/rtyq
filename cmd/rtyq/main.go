@@ -16,6 +16,8 @@ var (
 	checkConfigFile = check.Flag("config", "config file").String()
 	checkDataDir    = check.Flag("data", "data directory").Default(".").String()
 	checkDataExt    = check.Flag("ext", "allowed file extension").Default(".geojson").String()
+	checkDataID     = check.Flag("id", "object id").Default("id").String()
+	checkLayerName  = check.Flag("name", "name").String()
 
 	create           = app.Command("create", "create an rtree db from data")
 	createConfigFile = create.Flag("config", "config file").String()
@@ -24,14 +26,18 @@ var (
 	createDataID     = create.Flag("id", "object id").Default("id").String()
 	createDBFile     = create.Flag("db", "database filepath").Default("data.db").String()
 	createIndex      = create.Flag("index", "index").Default("data").String()
+	createLayerName  = create.Flag("name", "name").String()
 
 	service           = app.Command("service", "start api service")
 	serviceConfigFile = service.Flag("config", "config file").String()
 	serviceDataDir    = service.Flag("data", "data directory").Default(".").String()
 	serviceDataExt    = service.Flag("ext", "allowed file extension").Default(".geojson").String()
+	serviceDataID     = service.Flag("id", "unique identifier").String()
 	serviceDBFile     = service.Flag("db", "database filepath").Default("data.db").String()
 	serviceIndex      = service.Flag("index", "index").Default("data").String()
 	serviceZoomLimit  = service.Flag("zoomlimit", "zoomlimit").Int()
+	serviceEndpoint   = service.Flag("endpoint", "endpoint").String()
+	serviceLayerName  = service.Flag("name", "name").String()
 	servicePort       = service.Flag("port", "api port").Default("5500").Int()
 )
 
@@ -50,12 +56,14 @@ func main() {
 
 		if cfg == nil {
 			layer := rtyq.ConfigLayer{}
+			layer.Name = *checkLayerName
 			layer.Data.Path = *checkDataDir
 			layer.Data.Extension = *checkDataExt
+			layer.Data.ID = *checkDataID
 			cfg = rtyq.NewConfig(layer)
 		}
 
-		err = rtyq.CheckData(cfg)
+		err = rtyq.Check(cfg)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			return
@@ -71,15 +79,16 @@ func main() {
 
 		if cfg == nil {
 			layer := rtyq.ConfigLayer{}
-			layer.Data.Path = *checkDataDir
-			layer.Data.Extension = *checkDataExt
+			layer.Name = *createLayerName
+			layer.Data.Path = *createDataDir
+			layer.Data.Extension = *createDataExt
 			layer.Data.ID = *createDataID
 			layer.Database.Path = *createDBFile
 			layer.Database.Index = *createIndex
 			cfg = rtyq.NewConfig(layer)
 		}
 
-		err = rtyq.CreateDatabases(cfg)
+		err = rtyq.Create(cfg)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			return
@@ -97,14 +106,17 @@ func main() {
 			layer := rtyq.ConfigLayer{}
 			layer.Data.Path = *serviceDataDir
 			layer.Data.Extension = *serviceDataExt
+			layer.Data.ID = *serviceDataID
 			layer.Database.Path = *serviceDBFile
 			layer.Database.Index = *serviceIndex
 			layer.Service.ZoomLimit = *serviceZoomLimit
+			layer.Service.Endpoint = *serviceEndpoint
+			layer.Name = *serviceLayerName
 			cfg = rtyq.NewConfig(layer)
 			cfg.Port = *servicePort
 		}
 
-		err = api.StartService(cfg)
+		err = api.Start(cfg)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			return

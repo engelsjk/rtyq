@@ -10,16 +10,27 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// StartService ...
-func StartService(cfg *rtyq.Config) error {
+// Start ...
+func Start(cfg *rtyq.Config) error {
 
-	if cfg == nil {
-		return fmt.Errorf("no config provided")
+	err := rtyq.ValidateConfigData(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = rtyq.ValidateConfigDatabase(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = rtyq.ValidateConfigServiceOnly(cfg)
+	if err != nil {
+		return err
 	}
 
 	router := chi.NewRouter()
 
-	err := SetRoutes(router, cfg)
+	err = SetRoutes(router, cfg)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,6 @@ package rtyq
 
 import (
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"github.com/karrick/godirwalk"
@@ -13,11 +12,12 @@ var (
 	ErrNoConfigProvided error = fmt.Errorf("no config provided")
 )
 
-// CheckData ...
-func CheckData(cfg *Config) error {
+// Check ...
+func Check(cfg *Config) error {
 
-	if cfg == nil {
-		return ErrNoConfigProvided
+	err := ValidateConfigData(cfg)
+	if err != nil {
+		return err
 	}
 
 	for _, layer := range cfg.Layers {
@@ -27,26 +27,38 @@ func CheckData(cfg *Config) error {
 			return err
 		}
 
-		fmt.Printf("checking data path: %s...", filepath.Base(layer.Data.Path))
+		fmt.Printf("layer (%s)\n", layer.Name)
+		fmt.Printf("checking data path...\n")
 
-		err = d.CheckDirFiles()
+		numFiles, numFilesWithExtension, numReadableFiles, numFilesValidGeoJSON, numFilesWithID, err := d.CheckDirFiles()
 		if err != nil {
 			return err
 		}
+
+		fmt.Println() // print new line after progress bar
+		fmt.Printf("files found: %d\n", numFiles)
+		fmt.Printf("files w/ extension (%s): %d\n", layer.Data.Extension, numFilesWithExtension)
+		fmt.Printf("files readable: %d\n", numReadableFiles)
+		fmt.Printf("files w/ valid geojson feature: %d\n", numFilesValidGeoJSON)
+		fmt.Printf("files w/ property id (%s): %d\n", layer.Data.ID, numFilesWithID)
 	}
 	return nil
 }
 
-// CreateDatabases ...
-func CreateDatabases(cfg *Config) error {
+// Create ...
+func Create(cfg *Config) error {
 
-	if cfg == nil {
-		return ErrNoConfigProvided
+	err := ValidateConfigData(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = ValidateConfigDatabase(cfg)
+	if err != nil {
+		return err
 	}
 
 	for _, layer := range cfg.Layers {
-
-		// todo: print errors and continue instead?
 
 		db, err := NewDB(layer.Database.Path)
 		if err != nil {
@@ -60,7 +72,7 @@ func CreateDatabases(cfg *Config) error {
 			continue
 		}
 
-		fmt.Printf("generating database: %s...\n", db.FileName)
+		fmt.Printf("generating database: %s\n", db.FileName)
 
 		_, err = AddDataToDatabaseWithIndex(data, db, layer.Database.Index)
 		if err != nil {
@@ -72,11 +84,8 @@ func CreateDatabases(cfg *Config) error {
 	return nil
 }
 
-// AddDataToDatabaseIndex ...
+// AddDataToDatabaseWithIndex ...
 func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
-
-	// todo: update numLoadErrors and numUpdateErrors via the ErrorCallback function
-	// warning below is never triggered since these vars aren't updating properly
 
 	numLoadErrors := 0
 	numUpdateErrors := 0
@@ -84,7 +93,7 @@ func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
 
 	db.Index = index
 
-	fmt.Printf("generating db data with index:%s (%s)...\n", db.Index, db.FileName)
+	fmt.Printf("adding data with db index:%s...\n", db.Index)
 
 	progress := progressbar.Default(-1)
 
@@ -94,26 +103,27 @@ func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
 		Unsorted: true,
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
-				ext := filepath.Ext(path)
-				if ext != data.FileExtension {
-					return nil
-				}
+
 				id, bound, err := data.ReadFile(path)
 				if err != nil {
 					numLoadErrors++
 					return err
 				}
+
 				err = db.Update(id, bound)
 				if err != nil {
 					numUpdateErrors++
 					return err
 				}
+
 				numFiles++
 				progress.Add(1)
 			}
 			return nil
 		},
-		// ErrorCallback: ???
+		ErrorCallback: func(path string, err error) godirwalk.ErrorAction {
+			return godirwalk.SkipNode
+		},
 	})
 
 	if err != nil {
@@ -126,7 +136,7 @@ func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
 	fmt.Printf("time to generate db: %s (%d files)\n", dur.String(), numFiles)
 
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
-		fmt.Printf("warning: %d load errors | %d update errors", numLoadErrors, numUpdateErrors)
+		fmt.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
 	}
 
 	return numFiles, nil

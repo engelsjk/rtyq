@@ -12,6 +12,14 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
+var (
+	ErrUnableToOpenDataFile      error = fmt.Errorf("unable to open data file")
+	ErrUnableToReadDataFile      error = fmt.Errorf("unable to read data file")
+	ErrDoesNotMatchFileExtension error = fmt.Errorf("does match file extension")
+	ErrInvalidGeoJSONFeature     error = fmt.Errorf("invalid geojson feature")
+	ErrMissingFeatureID          error = fmt.Errorf("missing feature id")
+)
+
 // Data ...
 type Data struct {
 	DirPath       string
@@ -34,20 +42,45 @@ func InitData(path, ext, id string) (*Data, error) {
 }
 
 // CheckDirFiles ...
-func (d *Data) CheckDirFiles() error {
+func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
 
 	numFiles := 0
+	numFilesWithExtension := 0
+	numReadableFiles := 0
+	numFilesValidGeoJSON := 0
+	numFilesWithID := 0
+
 	progress := progressbar.Default(-1)
 
 	err := godirwalk.Walk(d.DirPath, &godirwalk.Options{
 		Unsorted: true,
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
-				fExt := filepath.Ext(path)
-				if fExt != d.FileExtension {
-					return nil
-				}
+
 				numFiles++
+
+				_, _, err := d.ReadFile(path)
+
+				if err == ErrUnableToOpenDataFile || err == ErrUnableToReadDataFile {
+					return err
+				}
+				numReadableFiles++
+
+				if err == ErrDoesNotMatchFileExtension {
+					return err
+				}
+				numFilesWithExtension++
+
+				if err == ErrInvalidGeoJSONFeature {
+					return err
+				}
+				numFilesValidGeoJSON++
+
+				if err == ErrMissingFeatureID {
+					return err
+				}
+				numFilesWithID++
+
 				progress.Add(1)
 				return nil
 			}
@@ -58,54 +91,63 @@ func (d *Data) CheckDirFiles() error {
 		},
 	})
 	if err != nil {
-		return err
+		return 0, 0, 0, 0, 0, err
 	}
 
-	fmt.Println() // print new line after progress bar
-	fmt.Printf("files found: %d\n", numFiles)
-	return nil
+	return numFiles, numFilesWithExtension, numReadableFiles, numFilesValidGeoJSON, numFilesWithID, nil
 }
 
 // ReadFile ...
 func (d *Data) ReadFile(path string) (string, string, error) {
 
-	// todo: check if path exists
-	// !!! todo: check if fid exists in properties and type==string
-	// todo: separate reading file and parsing id/bounds
+	ext := filepath.Ext(path)
+	if ext != d.FileExtension {
+		return "", "", ErrDoesNotMatchFileExtension
+	}
 
 	f, err := LoadFeature(path)
 	if err != nil {
 		return "", "", err
 	}
 
-	if _, ok := f.Properties[d.ID]; !ok {
-		return "", "", err
+	id, ok := f.Properties[d.ID]
+
+	if !ok {
+		return "", "", ErrMissingFeatureID
 	}
 
-	id := f.Properties[d.ID].(string)
+	var idStr string
+	switch v := id.(type) {
+	case string:
+		idStr = v
+	case int:
+		idStr = fmt.Sprintf("%d", v)
+	case float64:
+		idStr = fmt.Sprintf("%f", v)
+	}
 
 	bound := f.Geometry.Bound()
 	boundStr := fmt.Sprintf("[%f %f],[%f %f]", bound.Min.X(), bound.Min.Y(), bound.Max.X(), bound.Max.Y())
 
-	return id, boundStr, nil
+	return idStr, boundStr, nil
 }
 
 // LoadFeature ...
 func LoadFeature(path string) (*geojson.Feature, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, ErrUnableToOpenDataFile
 	}
 	defer file.Close()
 
 	b, err := ioutil.ReadAll(file)
 	if err != nil {
-		return nil, err
+		return nil, ErrUnableToReadDataFile
 	}
 
 	f, err := geojson.UnmarshalFeature(b)
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidGeoJSONFeature
 	}
 	return f, nil
 }

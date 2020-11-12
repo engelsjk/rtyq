@@ -20,6 +20,7 @@ var (
 	ErrLayerNoDatabasePath    error  = fmt.Errorf("config validation: no database path in layer")
 	ErrLayerNoDatabaseIndex   error  = fmt.Errorf("config validation: no database index in layer")
 	ErrLayerNoServiceEndpoint error  = fmt.Errorf("config validation: no service endpoint in layer")
+	ErrServiceNoPort          error  = fmt.Errorf("config validation: no service port provided")
 	WarningLayerNoZoomLimit   string = fmt.Sprintf("warning: config validation: no zoom limit provided (default z=0) in layer")
 )
 
@@ -80,16 +81,11 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, ErrConfigInvalidStructure
 	}
 
-	err = ValidateConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
 	return config, nil
 }
 
-// ValidateConfig checks a config to ensure that it is properly instantiated
-func ValidateConfig(cfg *Config) error {
+// ValidateConfigData checks a config to ensure that it is properly instantiated for data
+func ValidateConfigData(cfg *Config) error {
 
 	if cfg == nil {
 		return ErrConfigNotInitialized
@@ -102,7 +98,7 @@ func ValidateConfig(cfg *Config) error {
 	// todo: add string cleaning/checking for each item below?
 
 	for _, layer := range cfg.Layers {
-		err := ValidateConfigLayer(layer)
+		err := ValidateConfigLayerData(layer)
 		if err != nil {
 			return fmt.Errorf("%s (%s)", err.Error(), layer.Name)
 		}
@@ -111,13 +107,12 @@ func ValidateConfig(cfg *Config) error {
 	return nil
 }
 
-// ValidateConfigLayer ...
-func ValidateConfigLayer(layer ConfigLayer) error {
+// ValidateConfigLayerData ...
+func ValidateConfigLayerData(layer ConfigLayer) error {
 
 	if layer.Name == "" {
 		return ErrLayerNoName
 	}
-
 	if layer.Data.Path == "" {
 		return ErrLayerNoDataPath
 	}
@@ -127,17 +122,74 @@ func ValidateConfigLayer(layer ConfigLayer) error {
 	if layer.Data.ID == "" {
 		return ErrLayerNoDataID
 	}
+	return nil
+}
+
+// ValidateConfigDatabase checks a config to ensure that it is properly instantiated for database
+func ValidateConfigDatabase(cfg *Config) error {
+
+	if cfg == nil {
+		return ErrConfigNotInitialized
+	}
+
+	if cfg.Layers == nil {
+		return ErrConfigNoLayersProvided
+	}
+
+	// todo: add string cleaning/checking for each item below?
+
+	for _, layer := range cfg.Layers {
+		err := ValidateConfigLayerDatabase(layer)
+		if err != nil {
+			return fmt.Errorf("%s (%s)", err.Error(), layer.Name)
+		}
+	}
+
+	return nil
+}
+
+// ValidateConfigLayerDatabase ...
+func ValidateConfigLayerDatabase(layer ConfigLayer) error {
+
+	//todo: if only 1 out of 3 provided (name/index/endpoint), fill in others w/ warning
+
+	if layer.Name == "" {
+		return ErrLayerNoName
+	}
 	if layer.Database.Path == "" {
 		return ErrLayerNoDatabasePath
 	}
 	if layer.Database.Index == "" {
 		return ErrLayerNoDatabaseIndex
 	}
-	if layer.Service.Endpoint == "" {
-		return ErrLayerNoServiceEndpoint
+	return nil
+}
+
+// ValidateConfigServiceOnly ...
+func ValidateConfigServiceOnly(cfg *Config) error {
+
+	if cfg == nil {
+		return ErrConfigNotInitialized
 	}
-	if layer.Service.ZoomLimit == 0 {
-		fmt.Println(fmt.Sprintf("%s (%s)", WarningLayerNoZoomLimit, layer.Name))
+
+	if cfg.Layers == nil {
+		return ErrConfigNoLayersProvided
 	}
+
+	if cfg.Port == 0 {
+		return ErrServiceNoPort
+	}
+
+	//todo: if only 1 out of 3 provided (name/index/endpoint), fill in others w/ warning
+
+	for _, layer := range cfg.Layers {
+		if layer.Service.Endpoint == "" {
+			return ErrLayerNoServiceEndpoint
+		}
+		if layer.Service.ZoomLimit == 0 {
+			fmt.Println(fmt.Sprintf("%s (%s)", WarningLayerNoZoomLimit, layer.Name))
+		}
+	}
+
 	return nil
 }
