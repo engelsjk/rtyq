@@ -20,14 +20,17 @@ var (
 	ErrMissingFeatureID          error = fmt.Errorf("missing feature id")
 )
 
-// Data ...
+// Data is a structure that contains information
+// about the GeoJSON data for a single layer
+// (DirPath, FileExtension and ID)
 type Data struct {
 	DirPath       string
 	FileExtension string
 	ID            string
 }
 
-// InitData ...
+// InitData initializes a Data structure, first checking that
+// the data path exists
 func InitData(path, ext, id string) (*Data, error) {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -41,7 +44,10 @@ func InitData(path, ext, id string) (*Data, error) {
 	}, nil
 }
 
-// CheckDirFiles ...
+// CheckDirFiles iterates through a data path to check the validity of data files.
+// It outputs metrics on the number of files, if they're readable, if they match the
+// the specified file extension, if they're valid GeoJSON Features and if the Features
+// include the specified ID property.
 func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
 
 	numFiles := 0
@@ -97,7 +103,7 @@ func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
 	return numFiles, numFilesWithExtension, numReadableFiles, numFilesValidGeoJSON, numFilesWithID, nil
 }
 
-// ReadFile ...
+// ReadFile loads a GeoJSON Feature from the input filepath.
 func (d *Data) ReadFile(path string) (string, string, error) {
 
 	ext := filepath.Ext(path)
@@ -132,7 +138,7 @@ func (d *Data) ReadFile(path string) (string, string, error) {
 	return idStr, boundStr, nil
 }
 
-// LoadFeature ...
+// LoadFeature opens, reads and unmarshals a GeoJSON Feature from the input filepath.
 func LoadFeature(path string) (*geojson.Feature, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -152,7 +158,8 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	return f, nil
 }
 
-// FeaturesToString ...
+// FeaturesToString converts a slice of geojson.Features to a comma-separated
+// array string
 func FeaturesToString(features []*geojson.Feature) string {
 
 	if features == nil {
@@ -173,9 +180,9 @@ func FeaturesToString(features []*geojson.Feature) string {
 	return out
 }
 
-// FilePath ...
-func FilePath(path, id, ext string) string {
+// FilePath returns the full filepath from a directory, file ID and file extension.
+func FilePath(dir, id, ext string) string {
 	fn := fmt.Sprintf("%s%s", id, ext)
-	fp := filepath.Join(path, fn)
+	fp := filepath.Join(dir, fn)
 	return fp
 }

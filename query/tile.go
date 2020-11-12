@@ -18,7 +18,9 @@ var (
 	ErrTileZoomLimitExceeded error = fmt.Errorf("tile zoom limit exceeded")
 )
 
-// GetFeaturesFromTile ...
+// GetFeaturesFromTile parses a tile string 'z/x/y',
+// queries the database for results and returns
+// the results as a slice of *geojson.Feature
 func GetFeaturesFromTile(t string, zoomLimit int, db *rtyq.DB, data *rtyq.Data) ([]*geojson.Feature, error) {
 
 	tile, err := ParseTile(t)
@@ -42,7 +44,7 @@ func GetFeaturesFromTile(t string, zoomLimit int, db *rtyq.DB, data *rtyq.Data) 
 	return features, nil
 }
 
-// ParseTile ...
+// ParseTile converts a tile string 'z/x/y' to a maptile.Tile object
 func ParseTile(t string) (maptile.Tile, error) {
 
 	spl := strings.Split(t, "/")
@@ -73,7 +75,8 @@ func ParseTile(t string) (maptile.Tile, error) {
 	return tile, nil
 }
 
-// ResolveFeaturesFromTile ...
+// ResolveFeaturesFromTile converts the results from a database query,
+// loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
 func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rtyq.Data) []*geojson.Feature {
 
 	var zoomOffset = 5

@@ -22,6 +22,9 @@ var (
 	ErrDatabaseFailedToGetResults error = fmt.Errorf("failed to get results")
 )
 
+// DB is a structure that contains information
+// about the database file for a single layer
+// (FilePath, FileName and Index)
 type DB struct {
 	FilePath string
 	FileName string
@@ -29,8 +32,9 @@ type DB struct {
 	db       *buntdb.DB
 }
 
-// NewDB ...
-func NewDB(path string) (*DB, error) {
+// InitDB initializes an DB object, then loads a database
+// if a file already exists or creates a new database if it does not
+func InitDB(path string) (*DB, error) {
 
 	fn := filepath.Base(path)
 
@@ -40,51 +44,28 @@ func NewDB(path string) (*DB, error) {
 	}
 
 	bdb, err := db.Create()
-	if err != nil {
-		return nil, err
-	}
-
-	db.db = bdb
-
-	return db, nil
-}
-
-// LoadDB ...
-func LoadDB(path string) (*DB, error) {
-
-	fn := filepath.Base(path)
-
-	db := &DB{
-		FilePath: path,
-		FileName: fn,
-	}
-
-	bdb, err := db.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	db.db = bdb
-
-	return db, nil
-}
-
-// InitDB ...
-func InitDB(path string) (*DB, error) {
-	db, err := NewDB(path)
-
 	if err == nil {
+		db.db = bdb
 		return db, nil
 	}
 
-	if err == ErrDatabaseFileAlreadyExists {
-		return LoadDB(path)
+	if err != ErrDatabaseFileAlreadyExists {
+		return nil, err
 	}
 
-	return nil, err
+	bdb, err = db.Load()
+	if err != nil {
+		return nil, err
+
+	}
+
+	db.db = bdb
+
+	return db, nil
 }
 
-// Create ...
+// Create initializes a new buntdb.DB object
+// and creates a new database file
 func (db *DB) Create() (*buntdb.DB, error) {
 
 	_, err := os.Stat(db.FilePath)
@@ -101,7 +82,8 @@ func (db *DB) Create() (*buntdb.DB, error) {
 	return bdb, nil
 }
 
-// Load ...
+// Load initializes a new buntdb.DB object
+// from an existing database file
 func (db *DB) Load() (*buntdb.DB, error) {
 
 	info, err := os.Stat(db.FilePath)
@@ -121,7 +103,8 @@ func (db *DB) Load() (*buntdb.DB, error) {
 	return bdb, nil
 }
 
-// CreateSpatialIndex ...
+// CreateSpatialIndex runs an r-tree spatial index on the database object
+// using the specified index name
 func (db *DB) CreateSpatialIndex(index string) error {
 
 	db.Index = ""
@@ -146,8 +129,9 @@ func (db *DB) CreateSpatialIndex(index string) error {
 	return nil
 }
 
-// ListIndexes ...
+// ListIndexes prints out the existing indexes in a buntdb.DB object
 func (db *DB) ListIndexes() {
+
 	indexes, err := db.db.Indexes()
 	if err != nil {
 		fmt.Printf("error: %s\n", err.Error())
@@ -155,9 +139,9 @@ func (db *DB) ListIndexes() {
 	fmt.Printf("db indexes: %v\n", indexes)
 }
 
-// Update ...
+// Update adds an object to the database
+// with a key of index:id and a value of a geometry bounds
 func (db *DB) Update(id, bounds string) error {
-	// fmt.Println("updating db with %s:%s\n", id, bounds)
 
 	return db.db.Update(func(tx *buntdb.Tx) error {
 		k := fmt.Sprintf("%s:%s", db.Index, id)
@@ -167,9 +151,9 @@ func (db *DB) Update(id, bounds string) error {
 	})
 }
 
-// GetResults ...
+// GetResults returns a slice of Result objects from the database
+// that intersect the given bounds
 func (db *DB) GetResults(bounds string) ([]Result, error) {
-	// fmt.Println("looking for %s\n", bounds)
 
 	results := []Result{}
 
@@ -191,15 +175,18 @@ func (db *DB) GetResults(bounds string) ([]Result, error) {
 	return results, nil
 }
 
-// Result ...
+// Result is an object that contains Index, ID and Bounds
+// of an object returned from a database
 type Result struct {
 	Index  string
 	ID     string
 	Bounds string
 }
 
-// ParseResult ...
+// ParseResult converts a string output from a database query
+// into a Result object
 func ParseResult(result string) Result {
+
 	r := strings.Split(result, ":")
 
 	if len(r) != 3 {
@@ -213,7 +200,8 @@ func ParseResult(result string) Result {
 	return Result{Index: index, ID: id, Bounds: bounds}
 }
 
-// Bounds ...
+// Bounds converts a geometry object (eg orb.Point or maptile.Tile)
+// to the string format required to query the database
 func Bounds(o interface{}) string {
 
 	var bounds string

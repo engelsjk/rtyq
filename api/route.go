@@ -14,35 +14,38 @@ var (
 	ErrUnableToWriteHomeMessage error = fmt.Errorf("unable to write home message")
 )
 
-// Message will be served as the home endpoint to the service
+// Message acts as the home endpoint output for the api service
 type Message struct {
 	Status    string   `json:"status"`
 	Endpoints []string `json:"endpoints"`
 }
 
-// SetRoutes ...
+// SetRoutes initializes all of the API service endpoints. 	/
+// It iterates over each layer to initialize each db with a spatial index
+// and links it to a separate layer endpoint.
 func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 
-	layerEndpoints := []string{} // initialize endpoint list
+	layerEndpoints := []string{}
 
-	// iterate over data layers (data/database/service), initialize db and set endpointss
 	for _, layer := range cfg.Layers {
+
+		fn := filepath.Base(layer.Database.Path)
 
 		fmt.Println("%************%")
 
 		data, err := rtyq.InitData(layer.Data.Path, layer.Data.Extension, layer.Data.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("%s (%s)", err.Error(), fn)
 		}
 
-		db, err := rtyq.LoadDB(layer.Database.Path)
+		db, err := rtyq.InitDB(layer.Database.Path)
 		if err != nil {
-			return fmt.Errorf("%s (%s)", err.Error(), filepath.Base(layer.Database.Path))
+			return fmt.Errorf("%s (%s)", err.Error(), fn)
 		}
 
 		err = db.CreateSpatialIndex(layer.Database.Index)
 		if err != nil {
-			return fmt.Errorf("%s (%s)", err.Error(), filepath.Base(layer.Database.Path))
+			return fmt.Errorf("%s (%s)", err.Error(), fn)
 		}
 
 		handler := Handler{

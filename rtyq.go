@@ -8,11 +8,9 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-var (
-	ErrNoConfigProvided error = fmt.Errorf("no config provided")
-)
-
-// Check ...
+// Check runs through a data directory
+// and prints metrics on the files found
+// for each specified layer
 func Check(cfg *Config) error {
 
 	err := ValidateConfigData(cfg)
@@ -45,7 +43,9 @@ func Check(cfg *Config) error {
 	return nil
 }
 
-// Create ...
+// Create initializes a database file
+// and loads all data from a directory
+// for each specified layer
 func Create(cfg *Config) error {
 
 	err := ValidateConfigData(cfg)
@@ -60,7 +60,7 @@ func Create(cfg *Config) error {
 
 	for _, layer := range cfg.Layers {
 
-		db, err := NewDB(layer.Database.Path)
+		db, err := InitDB(layer.Database.Path)
 		if err != nil {
 			fmt.Printf("error : layer (%s) : %s\n", layer.Name, err.Error())
 			continue
@@ -84,7 +84,8 @@ func Create(cfg *Config) error {
 	return nil
 }
 
-// AddDataToDatabaseWithIndex ...
+// AddDataToDatabaseWithIndex adds data from a data directory
+// to a database file using the specified index
 func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
 
 	numLoadErrors := 0

@@ -9,7 +9,9 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// Handler ...
+// Handler is a structure that contains pointers
+// to Data and Database structures, and includes a
+// zoom limit integer
 type Handler struct {
 	Data      *rtyq.Data
 	Database  *rtyq.DB
@@ -26,10 +28,9 @@ var (
 	ErrUnableToGetDataFromDB error = fmt.Errorf(`{"error": "unable to get data from db"}`)
 )
 
-// HandleData ...
+// HandleLayer parses an API query by type and runs a response function
+// to write the query response
 func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType string) {
-
-	w.Header().Set("Content-Type", "application/json")
 
 	switch queryType {
 	case "point":
@@ -39,18 +40,16 @@ func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType 
 	case "id":
 		responseID(w, r, h)
 	default:
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(ErrUnknownQueryType.Error()))
 		return
 	}
-
-	// pt := r.URL.Query().Get("pt")
-	// tile := r.URL.Query().Get("tile")
-	// id := r.URL.Query().Get("id")
-
 }
 
 func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
+
+	w.Header().Set("Content-Type", "application/json")
 
 	var statusCode int
 	var response string
@@ -85,6 +84,8 @@ func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
 }
 
 func responseTile(w http.ResponseWriter, r *http.Request, h *Handler) {
+
+	w.Header().Set("Content-Type", "application/json")
 
 	var statusCode int
 	var response string
@@ -127,6 +128,8 @@ func responseTile(w http.ResponseWriter, r *http.Request, h *Handler) {
 
 func responseID(w http.ResponseWriter, r *http.Request, h *Handler) {
 
+	w.Header().Set("Content-Type", "application/json")
+
 	var statusCode int
 	var response string
 
@@ -160,5 +163,4 @@ func responseID(w http.ResponseWriter, r *http.Request, h *Handler) {
 
 	w.Write([]byte(response))
 	return
-
 }

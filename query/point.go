@@ -15,7 +15,9 @@ var (
 	ErrInvalidPoint error = fmt.Errorf("invalid lon,lat point")
 )
 
-// GetFeaturesFromPoint ...
+// GetFeaturesFromPoint parses a point string 'lon,lat',
+// queries the database for results and returns
+// the results as a slice of *geojson.Feature
 func GetFeaturesFromPoint(pt string, db *rtyq.DB, data *rtyq.Data) ([]*geojson.Feature, error) {
 
 	point, err := ParsePoint(pt)
@@ -33,7 +35,7 @@ func GetFeaturesFromPoint(pt string, db *rtyq.DB, data *rtyq.Data) ([]*geojson.F
 	return features, nil
 }
 
-// ParsePoint ...
+// ParsePoint converts a point string 'lon, lat' to an orb.Point object
 func ParsePoint(pt string) (orb.Point, error) {
 
 	// todo: better latlon string validation
@@ -56,7 +58,8 @@ func ParsePoint(pt string) (orb.Point, error) {
 	return point, nil
 }
 
-// ResolveFeaturesFromPoint ...
+// ResolveFeaturesFromPoint converts the results from a database query,
+// loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
 func ResolveFeaturesFromPoint(pt orb.Point, results []rtyq.Result, data *rtyq.Data) []*geojson.Feature {
 
 	features := []*geojson.Feature{}

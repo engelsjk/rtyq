@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	ErrNoConfigProvided       error  = fmt.Errorf("no config provided")
 	ErrConfigOpenFile         error  = fmt.Errorf("unable to open config file")
 	ErrConfigReadFile         error  = fmt.Errorf("unable to read config file")
 	ErrConfigInvalidStructure error  = fmt.Errorf("config file structure is invalid")
@@ -84,7 +85,8 @@ func LoadConfig(path string) (*Config, error) {
 	return config, nil
 }
 
-// ValidateConfigData checks a config to ensure that it is properly instantiated for data
+// ValidateConfigData checks a config to ensure
+// that it is properly instantiated for data
 func ValidateConfigData(cfg *Config) error {
 
 	if cfg == nil {
@@ -107,7 +109,8 @@ func ValidateConfigData(cfg *Config) error {
 	return nil
 }
 
-// ValidateConfigLayerData ...
+// ValidateConfigLayerData checks a single config layer to ensure
+// that it is properly instantiated for data
 func ValidateConfigLayerData(layer ConfigLayer) error {
 
 	if layer.Name == "" {
@@ -125,7 +128,8 @@ func ValidateConfigLayerData(layer ConfigLayer) error {
 	return nil
 }
 
-// ValidateConfigDatabase checks a config to ensure that it is properly instantiated for database
+// ValidateConfigDatabase checks a config to ensure
+// that it is properly instantiated for database
 func ValidateConfigDatabase(cfg *Config) error {
 
 	if cfg == nil {
@@ -148,7 +152,8 @@ func ValidateConfigDatabase(cfg *Config) error {
 	return nil
 }
 
-// ValidateConfigLayerDatabase ...
+// ValidateConfigLayerDatabase checks a single config layer to ensure
+// that it is properly instantiated for database
 func ValidateConfigLayerDatabase(layer ConfigLayer) error {
 
 	//todo: if only 1 out of 3 provided (name/index/endpoint), fill in others w/ warning
@@ -165,7 +170,8 @@ func ValidateConfigLayerDatabase(layer ConfigLayer) error {
 	return nil
 }
 
-// ValidateConfigServiceOnly ...
+// ValidateConfigServiceOnly checks a single config layer to ensure
+// that it is properly instantiated for api service
 func ValidateConfigServiceOnly(cfg *Config) error {
 
 	if cfg == nil {

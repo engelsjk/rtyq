@@ -5,7 +5,9 @@ import (
 	"github.com/paulmach/orb/geojson"
 )
 
-// GetFeaturesFromID ...
+// GetFeaturesFromID parses an ID string 'id',
+// queries the database for results and returns
+// the results as a slice of *geojson.Feature
 func GetFeaturesFromID(id string, data *rtyq.Data) ([]*geojson.Feature, error) {
 
 	id, err := ParseID(id)
@@ -18,7 +20,7 @@ func GetFeaturesFromID(id string, data *rtyq.Data) ([]*geojson.Feature, error) {
 	return features, nil
 }
 
-// ParseID ...
+// ParseID converts an ID string 'id'
 func ParseID(id string) (string, error) {
 
 	// todo: add id validation
@@ -26,7 +28,8 @@ func ParseID(id string) (string, error) {
 	return id, nil
 }
 
-// ResolveFeaturesFromID ...
+// ResolveFeaturesFromID loads GeoJSON data from the data directory
+// by the requested ID and returns a slice of *geojson.Feature
 func ResolveFeaturesFromID(id string, data *rtyq.Data) []*geojson.Feature {
 
 	features := []*geojson.Feature{}

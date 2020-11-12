@@ -10,7 +10,8 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// Start ...
+// Start initializes routes for each layer (data/database/index)
+// and starts an api at the specified port
 func Start(cfg *rtyq.Config) error {
 
 	err := rtyq.ValidateConfigData(cfg)
