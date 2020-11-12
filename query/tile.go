@@ -1,7 +1,11 @@
-package data
+package query
 
 import (
-	"github.com/engelsjk/rtyq/pkg/db"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/engelsjk/rtyq"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
@@ -9,44 +13,68 @@ import (
 	"github.com/paulmach/orb/planar"
 )
 
-// ResolvePoint ...
-func ResolvePoint(path, ext string, results []string, pt orb.Point) ([]*geojson.Feature, error) {
+var (
+	ErrInvalidTile           error = fmt.Errorf("invalid z/x/y tile")
+	ErrTileZoomLimitExceeded error = fmt.Errorf("tile zoom limit exceeded")
+)
 
-	features := []*geojson.Feature{}
+// GetFeaturesFromTile ...
+func GetFeaturesFromTile(t string, zoomLimit int, db *rtyq.DB, data *rtyq.Data) ([]*geojson.Feature, error) {
 
-	for _, r := range results {
+	tile, err := ParseTile(t)
+	if err != nil {
+		return nil, err
+	}
 
-		_, id, _ := db.ParseResult(r)
-
-		fp := FilePath(path, id, ext)
-
-		f, err := LoadFeature(fp)
-		if err != nil {
-			continue
-		}
-
-		isPtInFeature := false
-
-		geom := f.Geometry
-		switch g := geom.(type) {
-		case orb.Polygon:
-			isPtInFeature = planar.PolygonContains(g, pt)
-		case orb.MultiPolygon:
-			isPtInFeature = planar.MultiPolygonContains(g, pt)
-		default:
-			continue
-		}
-
-		if isPtInFeature {
-			features = append(features, f)
+	if zoomLimit != 0 {
+		if int(tile.Z) < zoomLimit {
+			return nil, ErrTileZoomLimitExceeded
 		}
 	}
+
+	results, err := db.GetResults(rtyq.Bounds(tile))
+	if err != nil {
+		return nil, err
+	}
+
+	features := ResolveFeaturesFromTile(tile, results, data)
 
 	return features, nil
 }
 
-// ResolveTile ...
-func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geojson.Feature, error) {
+// ParseTile ...
+func ParseTile(t string) (maptile.Tile, error) {
+
+	spl := strings.Split(t, "/")
+
+	if len(spl) != 3 {
+		return maptile.Tile{}, ErrInvalidTile
+	}
+
+	z, err := strconv.ParseInt(spl[0], 10, 32)
+	if err != nil {
+		return maptile.Tile{}, ErrInvalidTile
+	}
+	x, err := strconv.ParseInt(spl[1], 10, 32)
+	if err != nil {
+		return maptile.Tile{}, ErrInvalidTile
+	}
+	y, err := strconv.ParseInt(spl[2], 10, 32)
+	if err != nil {
+		return maptile.Tile{}, ErrInvalidTile
+	}
+
+	tile := maptile.Tile{
+		X: uint32(x),
+		Y: uint32(y),
+		Z: maptile.Zoom(uint32(z)),
+	}
+
+	return tile, nil
+}
+
+// ResolveFeaturesFromTile ...
+func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rtyq.Data) []*geojson.Feature {
 
 	var zoomOffset = 5
 	var zoomMax = 22
@@ -68,11 +96,9 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 
 	for _, r := range results {
 
-		_, id, _ := db.ParseResult(r)
+		fp := rtyq.FilePath(data.DirPath, r.ID, data.FileExtension)
 
-		fp := FilePath(path, id, ext)
-
-		f, err := LoadFeature(fp)
+		f, err := rtyq.LoadFeature(fp)
 		if err != nil {
 			continue
 		}
@@ -108,20 +134,5 @@ func ResolveTile(path, ext string, results []string, tile maptile.Tile) ([]*geoj
 		}
 	}
 
-	return features, nil
-}
-
-// ResolveID ...
-func ResolveID(path, ext string, id string) ([]*geojson.Feature, error) {
-	features := []*geojson.Feature{}
-
-	fp := FilePath(path, id, ext)
-
-	f, err := LoadFeature(fp)
-	if err != nil {
-		return nil, err
-	}
-
-	features = append(features, f)
-	return features, nil
+	return features
 }

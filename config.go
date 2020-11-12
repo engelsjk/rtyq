@@ -1,0 +1,143 @@
+package rtyq
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+)
+
+var (
+	ErrConfigOpenFile         error  = fmt.Errorf("unable to open config file")
+	ErrConfigReadFile         error  = fmt.Errorf("unable to read config file")
+	ErrConfigInvalidStructure error  = fmt.Errorf("config file structure is invalid")
+	ErrConfigNotInitialized   error  = fmt.Errorf("config validation: config not initialized")
+	ErrConfigNoLayersProvided error  = fmt.Errorf("config validation: no layers provided in config")
+	ErrLayerNoName            error  = fmt.Errorf("config validation: no layer name provided")
+	ErrLayerNoDataPath        error  = fmt.Errorf("config validation: no data path in layer")
+	ErrLayerNoDataExtension   error  = fmt.Errorf("config validation: no data extension in layer")
+	ErrLayerNoDataID          error  = fmt.Errorf("config validation: no data id in layer")
+	ErrLayerNoDatabasePath    error  = fmt.Errorf("config validation: no database path in layer")
+	ErrLayerNoDatabaseIndex   error  = fmt.Errorf("config validation: no database index in layer")
+	ErrLayerNoServiceEndpoint error  = fmt.Errorf("config validation: no service endpoint in layer")
+	WarningLayerNoZoomLimit   string = fmt.Sprintf("warning: config validation: no zoom limit provided (default z=0) in layer")
+)
+
+// ConfigLayer is the combined layer config (data/database/service) for one data type
+type ConfigLayer struct {
+	Name string
+	Data struct {
+		Path      string `json:"path"`
+		Extension string `json:"extension"`
+		ID        string `json:"id"`
+	} `json:"data"`
+	Database struct {
+		Path  string `json:"path"`
+		Index string `json:"index"`
+	} `json:"database"`
+	Service struct {
+		Endpoint  string `json:"endpoint"`
+		ZoomLimit int    `json:"zoom_limit"`
+	} `json:"service"`
+}
+
+// Config defines the array of data layers to create and run,
+// along with the single port to run the service on
+type Config struct {
+	Port   int           `json:"port"`
+	Layers []ConfigLayer `json:"layers"`
+}
+
+// NewConfig creates a new config from a single data layer
+func NewConfig(layer ConfigLayer) *Config {
+	return &Config{
+		Layers: []ConfigLayer{layer},
+	}
+}
+
+// LoadConfig creates a new config from a JSON file
+func LoadConfig(path string) (*Config, error) {
+
+	if path == "" {
+		return nil, nil
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, ErrConfigOpenFile
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, ErrConfigReadFile
+	}
+
+	var config *Config
+
+	err = json.Unmarshal(b, &config)
+	if err != nil {
+		return nil, ErrConfigInvalidStructure
+	}
+
+	err = ValidateConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}
+
+// ValidateConfig checks a config to ensure that it is properly instantiated
+func ValidateConfig(cfg *Config) error {
+
+	if cfg == nil {
+		return ErrConfigNotInitialized
+	}
+
+	if cfg.Layers == nil {
+		return ErrConfigNoLayersProvided
+	}
+
+	// todo: add string cleaning/checking for each item below?
+
+	for _, layer := range cfg.Layers {
+		err := ValidateConfigLayer(layer)
+		if err != nil {
+			return fmt.Errorf("%s (%s)", err.Error(), layer.Name)
+		}
+	}
+
+	return nil
+}
+
+// ValidateConfigLayer ...
+func ValidateConfigLayer(layer ConfigLayer) error {
+
+	if layer.Name == "" {
+		return ErrLayerNoName
+	}
+
+	if layer.Data.Path == "" {
+		return ErrLayerNoDataPath
+	}
+	if layer.Data.Extension == "" {
+		return ErrLayerNoDataExtension
+	}
+	if layer.Data.ID == "" {
+		return ErrLayerNoDataID
+	}
+	if layer.Database.Path == "" {
+		return ErrLayerNoDatabasePath
+	}
+	if layer.Database.Index == "" {
+		return ErrLayerNoDatabaseIndex
+	}
+	if layer.Service.Endpoint == "" {
+		return ErrLayerNoServiceEndpoint
+	}
+	if layer.Service.ZoomLimit == 0 {
+		fmt.Println(fmt.Sprintf("%s (%s)", WarningLayerNoZoomLimit, layer.Name))
+	}
+	return nil
+}

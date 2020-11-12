@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	rtyq "github.com/engelsjk/rtyq/pkg"
-	"github.com/engelsjk/rtyq/pkg/config"
+	"github.com/engelsjk/rtyq"
+	"github.com/engelsjk/rtyq/api"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -42,20 +42,20 @@ func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case check.FullCommand():
 
-		cfg, err := config.Load(*checkConfigFile)
+		cfg, err := rtyq.LoadConfig(*checkConfigFile)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			break
 		}
 
 		if cfg == nil {
-			svc := config.Set{}
-			svc.Data.Path = *checkDataDir
-			svc.Data.Extension = *checkDataExt
-			cfg = config.New(svc)
+			layer := rtyq.ConfigLayer{}
+			layer.Data.Path = *checkDataDir
+			layer.Data.Extension = *checkDataExt
+			cfg = rtyq.NewConfig(layer)
 		}
 
-		err = rtyq.Check(cfg)
+		err = rtyq.CheckData(cfg)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			return
@@ -63,23 +63,23 @@ func main() {
 
 	case create.FullCommand():
 
-		cfg, err := config.Load(*createConfigFile)
+		cfg, err := rtyq.LoadConfig(*createConfigFile)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			break
 		}
 
 		if cfg == nil {
-			set := config.Set{}
-			set.Data.Path = *createDataDir
-			set.Data.Extension = *createDataExt
-			set.Data.ID = *createDataID
-			set.Database.Path = *createDBFile
-			set.Database.Index = *createIndex
-			cfg = config.New(set)
+			layer := rtyq.ConfigLayer{}
+			layer.Data.Path = *checkDataDir
+			layer.Data.Extension = *checkDataExt
+			layer.Data.ID = *createDataID
+			layer.Database.Path = *createDBFile
+			layer.Database.Index = *createIndex
+			cfg = rtyq.NewConfig(layer)
 		}
 
-		err = rtyq.Create(cfg)
+		err = rtyq.CreateDatabases(cfg)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			return
@@ -87,24 +87,24 @@ func main() {
 
 	case service.FullCommand():
 
-		cfg, err := config.Load(*serviceConfigFile)
+		cfg, err := rtyq.LoadConfig(*serviceConfigFile)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			break
 		}
 
 		if cfg == nil {
-			set := config.Set{}
-			set.Data.Path = *serviceDataDir
-			set.Data.Extension = *serviceDataExt
-			set.Database.Path = *serviceDBFile
-			set.Database.Index = *serviceIndex
-			set.Service.ZoomLimit = *serviceZoomLimit
-			cfg = config.New(set)
+			layer := rtyq.ConfigLayer{}
+			layer.Data.Path = *serviceDataDir
+			layer.Data.Extension = *serviceDataExt
+			layer.Database.Path = *serviceDBFile
+			layer.Database.Index = *serviceIndex
+			layer.Service.ZoomLimit = *serviceZoomLimit
+			cfg = rtyq.NewConfig(layer)
 			cfg.Port = *servicePort
 		}
 
-		err = rtyq.Service(cfg)
+		err = api.StartService(cfg)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			return

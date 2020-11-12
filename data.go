@@ -1,30 +1,50 @@
-package data
+package rtyq
 
 import (
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/karrick/godirwalk"
-	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
-	"github.com/paulmach/orb/maptile"
 	"github.com/schollz/progressbar/v3"
 )
 
+// Data ...
+type Data struct {
+	DirPath       string
+	FileExtension string
+	ID            string
+}
+
+// InitData ...
+func InitData(path, ext, id string) (*Data, error) {
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil, fmt.Errorf("data dir path does not exist")
+	}
+
+	return &Data{
+		DirPath:       path,
+		FileExtension: ext,
+		ID:            id,
+	}, nil
+}
+
 // CheckDirFiles ...
-func CheckDirFiles(dir, ext string) error {
+func (d *Data) CheckDirFiles() error {
 
 	numFiles := 0
 	progress := progressbar.Default(-1)
 
-	err := godirwalk.Walk(dir, &godirwalk.Options{
+	err := godirwalk.Walk(d.DirPath, &godirwalk.Options{
 		Unsorted: true,
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
 				fExt := filepath.Ext(path)
-				if fExt != ext {
+				if fExt != d.FileExtension {
 					return nil
 				}
 				numFiles++
@@ -47,7 +67,7 @@ func CheckDirFiles(dir, ext string) error {
 }
 
 // ReadFile ...
-func ReadFile(path, fid string) (string, string, error) {
+func (d *Data) ReadFile(path string) (string, string, error) {
 
 	// todo: check if path exists
 	// !!! todo: check if fid exists in properties and type==string
@@ -58,11 +78,11 @@ func ReadFile(path, fid string) (string, string, error) {
 		return "", "", err
 	}
 
-	if _, ok := f.Properties[fid]; !ok {
+	if _, ok := f.Properties[d.ID]; !ok {
 		return "", "", err
 	}
 
-	id := f.Properties[fid].(string)
+	id := f.Properties[d.ID].(string)
 
 	bound := f.Geometry.Bound()
 	boundStr := fmt.Sprintf("[%f %f],[%f %f]", bound.Min.X(), bound.Min.Y(), bound.Max.X(), bound.Max.Y())
@@ -90,26 +110,25 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	return f, nil
 }
 
-// Bounds ...
-func Bounds(o interface{}) string {
+// FeaturesToString ...
+func FeaturesToString(features []*geojson.Feature) string {
 
-	var bounds string
-
-	switch v := o.(type) {
-	case orb.Point:
-		bounds = fmt.Sprintf("[%f %f]", v.Lon(), v.Lat())
-	case maptile.Tile:
-		bounds = fmt.Sprintf("[%f %f], [%f %f]",
-			v.Bound().Min.Lon(),
-			v.Bound().Min.Lat(),
-			v.Bound().Max.Lon(),
-			v.Bound().Max.Lat(),
-		)
-	default:
-
+	if features == nil {
+		return "[]"
 	}
 
-	return bounds
+	featuresStr := []string{}
+
+	for _, f := range features {
+		b, err := f.MarshalJSON()
+		if err != nil {
+			continue
+		}
+		featuresStr = append(featuresStr, string(b))
+	}
+
+	out := fmt.Sprintf("[%s]", strings.Join(featuresStr, ","))
+	return out
 }
 
 // FilePath ...
