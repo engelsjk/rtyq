@@ -57,7 +57,10 @@ func Start(cfg *rtyq.Config) error {
 	fmt.Println("%************%")
 	fmt.Printf("starting %d layer service%s on localhost:%d\n", len(cfg.Layers), plural, cfg.Port)
 
-	return http.ListenAndServe(net.JoinHostPort("", strconv.Itoa(cfg.Port)), router)
+	return http.ListenAndServe(
+		net.JoinHostPort("", strconv.Itoa(cfg.Port)),
+		router,
+	)
 }
 
 // SetRoutes initializes all of the API service endpoints. 	/
@@ -105,7 +108,11 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 
 		layerEndpoint := fmt.Sprintf("/%s", layer.Service.Endpoint)
 
-		layerEndpoints = append(layerEndpoints, layerEndpoint)
+		layerEndpoints = append(layerEndpoints,
+			fmt.Sprintf("%s/%s/%s", layerEndpoint, "id", "{id}"),
+			fmt.Sprintf("%s/%s/%s", layerEndpoint, "point", "{lon,lat}"),
+			fmt.Sprintf("%s/%s/%s", layerEndpoint, "tile", "{z/x/y}"),
+		)
 
 		router.Route(layerEndpoint, func(r chi.Router) {
 			r.Get("/point/{point}", func(w http.ResponseWriter, r *http.Request) {
@@ -120,37 +127,19 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 		})
 	}
 
-	// write message to home /
+	// write message to not found /
 
-	message := Message{
-		Message:   "running",
+	notfound := Message{
+		Message:   "invalid endpoint",
 		Endpoints: layerEndpoints,
 	}
 
-	b, err := json.Marshal(message)
-	if err != nil {
-		return ErrUnableToWriteMessage
-	}
-
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(b)
-	})
-
-	// write message to home /
-
-	message = Message{
-		Message:   "endpoint not found",
-		Endpoints: layerEndpoints,
-	}
-
-	b, err = json.Marshal(message)
+	b, err := json.Marshal(notfound)
 	if err != nil {
 		return ErrUnableToWriteMessage
 	}
 
 	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(b)
 	})
