@@ -10,10 +10,10 @@ import (
 func main() {
 
 	layer := rtyq.ConfigLayer{}
-	layer.Data.Path = "/home/engelsjk/Projects/RtyqTest/states"
+	layer.Data.Path = "path/to/data"
 	layer.Data.Extension = ".geojson"
-	layer.Data.ID = "STATEFP"
-	layer.Database.Path = "/home/engelsjk/Projects/RtyqTest/states.db"
+	layer.Data.ID = "FIPS"
+	layer.Database.Path = "path/to/database.db"
 	layer.Database.Index = "state"
 
 	/////////////////////////////////////////////////////////////////////////
