@@ -44,18 +44,18 @@ func Start(cfg *rtyq.Config) error {
 
 	router := chi.NewRouter()
 
-	err = SetRoutes(router, cfg)
+	numRoutes, err := SetRoutes(router, cfg)
 	if err != nil {
 		return err
 	}
 
 	plural := ""
-	if len(cfg.Layers) > 1 {
+	if numRoutes > 1 {
 		plural = "s"
 	}
 
 	fmt.Println("%************%")
-	fmt.Printf("starting %d layer service%s on localhost:%d\n", len(cfg.Layers), plural, cfg.Port)
+	fmt.Printf("starting %d layer service%s on localhost:%d\n", numRoutes, plural, cfg.Port)
 
 	return http.ListenAndServe(
 		net.JoinHostPort("", strconv.Itoa(cfg.Port)),
@@ -66,8 +66,9 @@ func Start(cfg *rtyq.Config) error {
 // SetRoutes initializes all of the API service endpoints. 	/
 // It iterates over each layer to initialize each db with a spatial index
 // and links it to a separate layer endpoint.
-func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
+func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
 
+	numRoutes := 0
 	layerEndpoints := []string{}
 
 	for _, layer := range cfg.Layers {
@@ -79,7 +80,8 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 
 		data, err := rtyq.InitData(layer.Data.Path, layer.Data.Extension, layer.Data.ID)
 		if err != nil {
-			return fmt.Errorf("%s (%s)", err.Error(), fn)
+			fmt.Printf("warning : layer (%s) : %s : skipping layer\n", layer.Name, err.Error())
+			continue
 		}
 
 		if !rtyq.FileExists(layer.Database.Path) {
@@ -91,7 +93,8 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 
 		db, err := rtyq.InitDB(layer.Database.Path)
 		if err != nil {
-			return fmt.Errorf("%s (%s)", err.Error(), fn)
+			fmt.Printf("warning : layer (%s) : %s (%s) : skipping layer\n", layer.Name, err.Error(), fn)
+			continue
 		}
 
 		fmt.Printf("running spatial index:%s (%s)...\n", db.Index, db.FileName)
@@ -99,7 +102,8 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 
 		err = db.CreateSpatialIndex(layer.Database.Index)
 		if err != nil {
-			return fmt.Errorf("%s (%s)", err.Error(), fn)
+			fmt.Printf("warning : layer (%s) : %s (%s) : skipping layer\n", layer.Name, err.Error(), fn)
+			continue
 		}
 
 		dur := time.Since(start)
@@ -130,6 +134,8 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 				handler.HandleLayer(w, r, "id", cfg.EnableLogs)
 			})
 		})
+
+		numRoutes++
 	}
 
 	// write message to not found /
@@ -141,7 +147,7 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 
 	b, err := json.Marshal(notfound)
 	if err != nil {
-		return ErrUnableToWriteMessage
+		return numRoutes, ErrUnableToWriteMessage
 	}
 
 	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
@@ -149,5 +155,5 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 		w.Write(b)
 	})
 
-	return nil
+	return numRoutes, nil
 }
