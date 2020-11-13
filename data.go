@@ -188,3 +188,9 @@ func FilePath(dir, id, ext string) string {
 	fp := filepath.Join(dir, fn)
 	return fp
 }
+
+// FileExists ...
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}

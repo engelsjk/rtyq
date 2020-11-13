@@ -64,6 +64,11 @@ func Create(cfg *Config) error {
 
 		fmt.Printf("layer: %s\n", layer.Name)
 
+		if FileExists(layer.Database.Path) {
+			fmt.Printf("warning : %s : skipping layer (%s)\n", ErrDatabaseFileAlreadyExists.Error(), layer.Name)
+			continue
+		}
+
 		db, err := InitDB(layer.Database.Path)
 		if err != nil {
 			fmt.Printf("warning : %s : skipping layer (%s)\n", err.Error(), layer.Name)

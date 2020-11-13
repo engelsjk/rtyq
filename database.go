@@ -32,23 +32,23 @@ type DB struct {
 	db       *buntdb.DB
 }
 
+// NewDB .,,
+func NewDB(path string) *DB {
+	fn := filepath.Base(path)
+
+	return &DB{
+		FilePath: path,
+		FileName: fn,
+	}
+}
+
 // InitDB initializes an DB object, then loads a database
 // if a file already exists or creates a new database if it does not
 func InitDB(path string) (*DB, error) {
 
-	fn := filepath.Base(path)
-
-	db := &DB{
-		FilePath: path,
-		FileName: fn,
-	}
+	db := NewDB(path)
 
 	bdb, err := db.Create()
-
-	if err == ErrDatabaseFileAlreadyExists {
-		return nil, err
-	}
-
 	if err == nil {
 		db.db = bdb
 		return db, nil
