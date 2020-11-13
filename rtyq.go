@@ -2,6 +2,7 @@ package rtyq
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/karrick/godirwalk"
@@ -60,11 +61,13 @@ func Create(cfg *Config) error {
 
 	for _, layer := range cfg.Layers {
 
+		dbFilename := filepath.Base(filepath.Base(layer.Database.Path))
+
 		fmt.Println("%************%")
-		fmt.Printf("layer: %s\n", layer.Name)
+		fmt.Printf("creating layer: %s\n", layer.Name)
 
 		if FileExists(layer.Database.Path) {
-			fmt.Printf("warning : %s : skipping layer (%s)\n", ErrDatabaseFileAlreadyExists.Error(), layer.Name)
+			fmt.Printf("warning : layer (%s) : %s (%s) : skipping layer\n", layer.Name, ErrDatabaseFileAlreadyExists.Error(), dbFilename)
 			continue
 		}
 
@@ -72,7 +75,7 @@ func Create(cfg *Config) error {
 
 		db, err := InitDB(layer.Database.Path)
 		if err != nil {
-			fmt.Printf("warning : %s : skipping layer (%s)\n", err.Error(), layer.Name)
+			fmt.Printf("warning : layer (%s) : %s (%s) : skipping layer\n", layer.Name, err.Error(), dbFilename)
 			continue
 		}
 
@@ -82,13 +85,18 @@ func Create(cfg *Config) error {
 			continue
 		}
 
-		fmt.Printf("adding data to database: %s\n", db.FileName)
+		fmt.Printf("adding data to %s with index:%s...\n", dbFilename, layer.Database.Index)
+		start := time.Now()
 
-		_, err = AddDataToDatabaseWithIndex(data, db, layer.Database.Index)
+		numFiles, err := AddDataToDatabaseWithIndex(data, db, layer.Database.Index)
 		if err != nil {
-			fmt.Printf("warning : layer (%s) : %s\n", layer.Name, err.Error())
+			fmt.Printf("warning : layer (%s) : %s (%s) : skipping layer\n", layer.Name, err.Error(), dbFilename)
 			continue
 		}
+
+		dur := time.Since(start)
+
+		fmt.Printf("time to generate db: %s (added %d files)\n", dur.String(), numFiles)
 	}
 
 	return nil
@@ -104,11 +112,7 @@ func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
 
 	db.Index = index
 
-	fmt.Printf("adding data with db index:%s...\n", db.Index)
-
 	progress := progressbar.Default(-1)
-
-	start := time.Now()
 
 	err := godirwalk.Walk(data.DirPath, &godirwalk.Options{
 		Unsorted: true,
@@ -141,10 +145,7 @@ func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
 		return 0, err
 	}
 
-	dur := time.Since(start)
-
 	fmt.Println() // print new line after progress bar
-	fmt.Printf("time to generate db: %s (%d files)\n", dur.String(), numFiles)
 
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
 		fmt.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
