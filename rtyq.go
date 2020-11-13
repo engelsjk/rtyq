@@ -61,13 +61,14 @@ func Create(cfg *Config) error {
 	for _, layer := range cfg.Layers {
 
 		fmt.Println("%************%")
-
 		fmt.Printf("layer: %s\n", layer.Name)
 
 		if FileExists(layer.Database.Path) {
 			fmt.Printf("warning : %s : skipping layer (%s)\n", ErrDatabaseFileAlreadyExists.Error(), layer.Name)
 			continue
 		}
+
+		fmt.Printf("initializing database\n")
 
 		db, err := InitDB(layer.Database.Path)
 		if err != nil {
@@ -81,7 +82,7 @@ func Create(cfg *Config) error {
 			continue
 		}
 
-		fmt.Printf("generating database: %s\n", db.FileName)
+		fmt.Printf("adding data to database: %s\n", db.FileName)
 
 		_, err = AddDataToDatabaseWithIndex(data, db, layer.Database.Index)
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/engelsjk/rtyq"
 	"github.com/go-chi/chi"
@@ -32,21 +33,30 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 		fn := filepath.Base(layer.Database.Path)
 
 		fmt.Println("%************%")
+		fmt.Printf("setting route for layer: %s\n", layer.Name)
 
 		data, err := rtyq.InitData(layer.Data.Path, layer.Data.Extension, layer.Data.ID)
 		if err != nil {
 			return fmt.Errorf("%s (%s)", err.Error(), fn)
 		}
 
+		fmt.Printf("initializing database\n")
+
 		db, err := rtyq.InitDB(layer.Database.Path)
 		if err != nil {
 			return fmt.Errorf("%s (%s)", err.Error(), fn)
 		}
 
+		fmt.Printf("running spatial index:%s (%s)...\n", db.Index, db.FileName)
+		start := time.Now()
+
 		err = db.CreateSpatialIndex(layer.Database.Index)
 		if err != nil {
 			return fmt.Errorf("%s (%s)", err.Error(), fn)
 		}
+
+		dur := time.Since(start)
+		fmt.Printf("time to index: %s\n", dur)
 
 		handler := Handler{
 			Data:      data,

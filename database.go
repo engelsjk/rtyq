@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/maptile"
@@ -113,19 +112,12 @@ func (db *DB) CreateSpatialIndex(index string) error {
 	name := index
 	pattern := fmt.Sprintf("%s:*", index)
 
-	fmt.Printf("running spatial index:%s (%s)...\n", index, db.FileName)
-
-	start := time.Now()
-
 	err := db.db.CreateSpatialIndex(name, pattern, buntdb.IndexRect)
 	if err != nil {
 		return ErrSpatialIndexCreate
 	}
 
 	db.Index = index
-
-	dur := time.Since(start)
-	fmt.Printf("time to index: %s\n", dur)
 
 	return nil
 }
