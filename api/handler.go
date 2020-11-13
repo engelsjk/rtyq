@@ -34,7 +34,7 @@ var (
 func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType string, enableLogs bool) {
 
 	if enableLogs {
-		url := fmt.Sprintf("%v %v %v", r.Method, r.URL, r.Proto)
+		url := fmt.Sprintf("%s %s %s", r.Method, r.URL, r.Proto)
 		log.Printf(url)
 	}
 
