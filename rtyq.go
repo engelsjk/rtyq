@@ -60,6 +60,10 @@ func Create(cfg *Config) error {
 
 	for _, layer := range cfg.Layers {
 
+		fmt.Println("%************%")
+
+		fmt.Printf("layer: %s\n", layer.Name)
+
 		db, err := InitDB(layer.Database.Path)
 		if err != nil {
 			fmt.Printf("warning : %s : skipping layer (%s)\n", err.Error(), layer.Name)

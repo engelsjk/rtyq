@@ -28,17 +28,17 @@ var (
 	createIndex      = create.Flag("index", "index").Default("data").String()
 	createLayerName  = create.Flag("name", "name").String()
 
-	service           = app.Command("service", "start api service")
-	serviceConfigFile = service.Flag("config", "config file").String()
-	serviceDataDir    = service.Flag("data", "data directory").Default(".").String()
-	serviceDataExt    = service.Flag("ext", "allowed file extension").Default(".geojson").String()
-	serviceDataID     = service.Flag("id", "unique identifier").String()
-	serviceDBFile     = service.Flag("db", "database filepath").Default("data.db").String()
-	serviceIndex      = service.Flag("index", "index").Default("data").String()
-	serviceZoomLimit  = service.Flag("zoomlimit", "zoomlimit").Int()
-	serviceEndpoint   = service.Flag("endpoint", "endpoint").String()
-	serviceLayerName  = service.Flag("name", "name").String()
-	servicePort       = service.Flag("port", "api port").Default("5500").Int()
+	start           = app.Command("start", "start api service")
+	startConfigFile = start.Flag("config", "config file").String()
+	startDataDir    = start.Flag("data", "data directory").Default(".").String()
+	startDataExt    = start.Flag("ext", "allowed file extension").Default(".geojson").String()
+	startDataID     = start.Flag("id", "unique identifier").String()
+	startDBFile     = start.Flag("db", "database filepath").Default("data.db").String()
+	startIndex      = start.Flag("index", "index").Default("data").String()
+	startZoomLimit  = start.Flag("zoomlimit", "zoomlimit").Int()
+	startEndpoint   = start.Flag("endpoint", "endpoint").String()
+	startLayerName  = start.Flag("name", "name").String()
+	startPort       = start.Flag("port", "api port").Default("5500").Int()
 )
 
 func main() {
@@ -94,9 +94,9 @@ func main() {
 			return
 		}
 
-	case service.FullCommand():
+	case start.FullCommand():
 
-		cfg, err := rtyq.LoadConfig(*serviceConfigFile)
+		cfg, err := rtyq.LoadConfig(*startConfigFile)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			break
@@ -104,16 +104,16 @@ func main() {
 
 		if cfg == nil {
 			layer := rtyq.ConfigLayer{}
-			layer.Data.Path = *serviceDataDir
-			layer.Data.Extension = *serviceDataExt
-			layer.Data.ID = *serviceDataID
-			layer.Database.Path = *serviceDBFile
-			layer.Database.Index = *serviceIndex
-			layer.Service.ZoomLimit = *serviceZoomLimit
-			layer.Service.Endpoint = *serviceEndpoint
-			layer.Name = *serviceLayerName
+			layer.Data.Path = *startDataDir
+			layer.Data.Extension = *startDataExt
+			layer.Data.ID = *startDataID
+			layer.Database.Path = *startDBFile
+			layer.Database.Index = *startIndex
+			layer.Service.ZoomLimit = *startZoomLimit
+			layer.Service.Endpoint = *startEndpoint
+			layer.Name = *startLayerName
 			cfg = rtyq.NewConfig(layer)
-			cfg.Port = *servicePort
+			cfg.Port = *startPort
 		}
 
 		err = api.Start(cfg)
