@@ -46,8 +46,9 @@ type ConfigLayer struct {
 // Config defines the array of data layers to create and run,
 // along with the single port to run the service on
 type Config struct {
-	Port   int           `json:"port"`
-	Layers []ConfigLayer `json:"layers"`
+	Port       int           `json:"port"`
+	EnableLogs bool          `json:"enable_logs"`
+	Layers     []ConfigLayer `json:"layers"`
 }
 
 // NewConfig creates a new config from a single data layer

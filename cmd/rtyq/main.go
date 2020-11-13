@@ -39,6 +39,7 @@ var (
 	startEndpoint   = start.Flag("endpoint", "endpoint").String()
 	startLayerName  = start.Flag("name", "name").String()
 	startPort       = start.Flag("port", "api port").Default("5500").Int()
+	startLogs       = start.Flag("logs", "enable logs").Default("false").Bool()
 )
 
 func main() {
@@ -114,6 +115,7 @@ func main() {
 			layer.Name = *startLayerName
 			cfg = rtyq.NewConfig(layer)
 			cfg.Port = *startPort
+			cfg.EnableLogs = *startLogs
 		}
 
 		err = api.Start(cfg)

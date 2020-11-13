@@ -116,13 +116,13 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 
 		router.Route(layerEndpoint, func(r chi.Router) {
 			r.Get("/point/{point}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "point")
+				handler.HandleLayer(w, r, "point", cfg.EnableLogs)
 			})
 			r.Get("/tile/{z}/{x}/{y}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "tile")
+				handler.HandleLayer(w, r, "tile", cfg.EnableLogs)
 			})
 			r.Get("/id/{id}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "id")
+				handler.HandleLayer(w, r, "id", cfg.EnableLogs)
 			})
 		})
 	}
