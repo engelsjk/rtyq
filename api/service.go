@@ -82,6 +82,11 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) error {
 			return fmt.Errorf("%s (%s)", err.Error(), fn)
 		}
 
+		if !rtyq.FileExists(layer.Database.Path) {
+			fmt.Printf("warning : layer (%s) : %s (%s) : skipping layer\n", layer.Name, rtyq.ErrDatabaseFileDoesNotExist.Error(), fn)
+			continue
+		}
+
 		fmt.Printf("initializing database\n")
 
 		db, err := rtyq.InitDB(layer.Database.Path)
