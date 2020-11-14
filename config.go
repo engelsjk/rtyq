@@ -22,6 +22,7 @@ var (
 	ErrLayerNoDatabaseIndex   error  = fmt.Errorf("config validation: no database index in layer")
 	ErrLayerNoServiceEndpoint error  = fmt.Errorf("config validation: no service endpoint in layer")
 	ErrServiceNoPort          error  = fmt.Errorf("config validation: no service port provided")
+	ErrServiceNoThrottleLimit error  = fmt.Errorf("config validation: no throttle limit provided")
 	WarningLayerNoZoomLimit   string = fmt.Sprintf("warning: config validation: no zoom limit provided (default z=0) in layer")
 )
 
@@ -46,9 +47,10 @@ type ConfigLayer struct {
 // Config defines the array of data layers to create and run,
 // along with the single port to run the service on
 type Config struct {
-	Port       int           `json:"port"`
-	EnableLogs bool          `json:"enable_logs"`
-	Layers     []ConfigLayer `json:"layers"`
+	Port          int           `json:"port"`
+	EnableLogs    bool          `json:"enable_logs"`
+	ThrottleLimit int           `json:"throttle_limit"`
+	Layers        []ConfigLayer `json:"layers"`
 }
 
 // NewConfig creates a new config from a single data layer
@@ -185,6 +187,10 @@ func ValidateConfigServiceOnly(cfg *Config) error {
 
 	if cfg.Port == 0 {
 		return ErrServiceNoPort
+	}
+
+	if cfg.ThrottleLimit == 0 {
+		return ErrServiceNoThrottleLimit
 	}
 
 	//todo: if only 1 out of 3 provided (name/index/endpoint), fill in others w/ warning

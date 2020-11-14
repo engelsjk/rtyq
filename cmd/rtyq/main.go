@@ -28,18 +28,19 @@ var (
 	createIndex      = create.Flag("index", "index").String()
 	createLayerName  = create.Flag("name", "name").String()
 
-	start           = app.Command("start", "start api service")
-	startConfigFile = start.Flag("config", "config file").String()
-	startDataDir    = start.Flag("data", "data directory").Default(".").String()
-	startDataExt    = start.Flag("ext", "allowed file extension").Default(".geojson").String()
-	startDataID     = start.Flag("id", "unique identifier").String()
-	startDBFile     = start.Flag("db", "database filepath").String()
-	startIndex      = start.Flag("index", "index").String()
-	startZoomLimit  = start.Flag("zoomlimit", "zoomlimit").Int()
-	startEndpoint   = start.Flag("endpoint", "endpoint").String()
-	startLayerName  = start.Flag("name", "name").String()
-	startPort       = start.Flag("port", "api port").Default("5500").Int()
-	startLogs       = start.Flag("logs", "enable logs").Default("false").Bool()
+	start              = app.Command("start", "start api service")
+	startConfigFile    = start.Flag("config", "config file").String()
+	startDataDir       = start.Flag("data", "data directory").Default(".").String()
+	startDataExt       = start.Flag("ext", "allowed file extension").Default(".geojson").String()
+	startDataID        = start.Flag("id", "unique identifier").String()
+	startDBFile        = start.Flag("db", "database filepath").String()
+	startIndex         = start.Flag("index", "index").String()
+	startZoomLimit     = start.Flag("zoomlimit", "zoomlimit").Int()
+	startEndpoint      = start.Flag("endpoint", "endpoint").String()
+	startLayerName     = start.Flag("name", "name").String()
+	startPort          = start.Flag("port", "api port").Default("5500").Int()
+	startEnableLogs    = start.Flag("logs", "enable logs").Default("false").Bool()
+	startThrottleLimit = start.Flag("throttle", "throttle limit").Default("100").Int()
 )
 
 func main() {
@@ -113,7 +114,8 @@ func main() {
 			layer.Name = *startLayerName
 			cfg = rtyq.NewConfig(layer)
 			cfg.Port = *startPort
-			cfg.EnableLogs = *startLogs
+			cfg.EnableLogs = *startEnableLogs
+			cfg.ThrottleLimit = *startThrottleLimit
 		}
 
 		err = api.Start(cfg)

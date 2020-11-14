@@ -49,6 +49,8 @@ func Start(cfg *rtyq.Config) error {
 	// middleware
 	router.Use(render.SetContentType(render.ContentTypeJSON))
 	router.Use(middleware.Timeout(10 * time.Second))
+	router.Use(middleware.Throttle(cfg.ThrottleLimit))
+
 	router.Use(middleware.Recoverer)
 
 	if cfg.EnableLogs {
