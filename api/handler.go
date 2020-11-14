@@ -40,7 +40,6 @@ func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType 
 	case "id":
 		responseID(w, r, h)
 	default:
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(ErrUnknownQueryType.Error()))
 		return
@@ -48,8 +47,6 @@ func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType 
 }
 
 func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
-
-	w.Header().Set("Content-Type", "application/json")
 
 	var statusCode int
 	var response string
@@ -84,8 +81,6 @@ func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
 }
 
 func responseTile(w http.ResponseWriter, r *http.Request, h *Handler) {
-
-	w.Header().Set("Content-Type", "application/json")
 
 	var statusCode int
 	var response string
@@ -127,8 +122,6 @@ func responseTile(w http.ResponseWriter, r *http.Request, h *Handler) {
 }
 
 func responseID(w http.ResponseWriter, r *http.Request, h *Handler) {
-
-	w.Header().Set("Content-Type", "application/json")
 
 	var statusCode int
 	var response string

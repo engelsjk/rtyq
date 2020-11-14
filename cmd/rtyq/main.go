@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	grmon "github.com/bcicen/grmon/agent"
 	"github.com/engelsjk/rtyq"
 	"github.com/engelsjk/rtyq/api"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -116,8 +115,6 @@ func main() {
 			cfg.Port = *startPort
 			cfg.EnableLogs = *startLogs
 		}
-
-		grmon.Start()
 
 		err = api.Start(cfg)
 		if err != nil {

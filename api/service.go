@@ -12,6 +12,7 @@ import (
 	"github.com/engelsjk/rtyq"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/render"
 )
 
 var (
@@ -46,6 +47,7 @@ func Start(cfg *rtyq.Config) error {
 	router := chi.NewRouter()
 
 	// middleware
+	router.Use(render.SetContentType(render.ContentTypeJSON))
 	router.Use(middleware.Timeout(10 * time.Second))
 	router.Use(middleware.Recoverer)
 

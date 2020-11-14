@@ -8,6 +8,7 @@ require (
 	github.com/bcicen/grmon v0.0.0-20190725134940-6c3770b6af49
 	github.com/bcicen/termui v0.0.0-20180326052246-4eb80249d3f5 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/render v1.0.1
 	github.com/karrick/godirwalk v1.16.1
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/nsf/termbox-go v0.0.0-20201107200903-9b52a5faed9e // indirect

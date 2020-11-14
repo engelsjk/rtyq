@@ -1,8 +1,10 @@
 package rtyq
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +16,7 @@ import (
 
 var (
 	ErrUnableToOpenDataFile      error = fmt.Errorf("unable to open data file")
-	ErrUnableToReadDataFile      error = fmt.Errorf("unable to read data file")
+	ErrUnableToCloseDataFile     error = fmt.Errorf("unable to close data file")
 	ErrDoesNotMatchFileExtension error = fmt.Errorf("does match file extension")
 	ErrInvalidGeoJSONFeature     error = fmt.Errorf("invalid geojson feature")
 	ErrMissingFeatureID          error = fmt.Errorf("missing feature id")
@@ -67,7 +69,7 @@ func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
 
 				_, _, err := d.ReadFile(path)
 
-				if err == ErrUnableToOpenDataFile || err == ErrUnableToReadDataFile {
+				if err == ErrUnableToOpenDataFile {
 					return err
 				}
 				numReadableFiles++
@@ -143,15 +145,30 @@ func (d *Data) ReadFile(path string) (string, string, error) {
 // LoadFeature opens, reads and unmarshals a GeoJSON Feature from the input filepath.
 func LoadFeature(path string) (*geojson.Feature, error) {
 
-	b, err := ioutil.ReadFile(path)
+	file, err := os.Open(path)
 	if err != nil {
-		return nil, ErrUnableToReadDataFile
+		return nil, err
 	}
+	defer func(f io.Closer) {
+		if err := f.Close(); err != nil {
+			log.Printf("%s", ErrUnableToCloseDataFile.Error())
+		}
+	}(file)
+
+	buf := &bytes.Buffer{}
+
+	_, err = io.Copy(buf, file)
+	if err != nil {
+		return nil, err
+	}
+
+	b := buf.Bytes()
 
 	f, err := geojson.UnmarshalFeature(b)
 	if err != nil {
 		return nil, ErrInvalidGeoJSONFeature
 	}
+
 	return f, nil
 }
 
