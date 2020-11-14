@@ -142,13 +142,8 @@ func (d *Data) ReadFile(path string) (string, string, error) {
 
 // LoadFeature opens, reads and unmarshals a GeoJSON Feature from the input filepath.
 func LoadFeature(path string) (*geojson.Feature, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, ErrUnableToOpenDataFile
-	}
-	defer file.Close()
 
-	b, err := ioutil.ReadAll(file)
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, ErrUnableToReadDataFile
 	}

@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	grmon "github.com/bcicen/grmon/agent"
 	"github.com/engelsjk/rtyq"
 	"github.com/engelsjk/rtyq/api"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	app = kingpin.New("rtyq", "generate and query spatial rtrees on disk")
+	app = kingpin.New("rtyq", "generate and query spatial rtrees on disk").Version("0.0.1")
 
 	check           = app.Command("check", "check data path")
 	checkConfigFile = check.Flag("config", "config file").String()
@@ -44,15 +45,13 @@ var (
 
 func main() {
 
-	kingpin.Version("0.0.1")
-
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case check.FullCommand():
 
 		cfg, err := rtyq.LoadConfig(*checkConfigFile)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
-			break
+			return
 		}
 
 		if cfg == nil {
@@ -75,7 +74,7 @@ func main() {
 		cfg, err := rtyq.LoadConfig(*createConfigFile)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
-			break
+			return
 		}
 
 		if cfg == nil {
@@ -100,7 +99,7 @@ func main() {
 		cfg, err := rtyq.LoadConfig(*startConfigFile)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
-			break
+			return
 		}
 
 		if cfg == nil {
@@ -118,10 +117,14 @@ func main() {
 			cfg.EnableLogs = *startLogs
 		}
 
+		grmon.Start()
+
 		err = api.Start(cfg)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 			return
 		}
+	default:
+		break
 	}
 }

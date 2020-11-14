@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/engelsjk/rtyq"
@@ -32,11 +31,6 @@ var (
 // HandleLayer parses an API query by type and runs a response function
 // to write the query response
 func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType string, enableLogs bool) {
-
-	if enableLogs {
-		url := fmt.Sprintf("%s %s %s", r.Method, r.URL, r.Proto)
-		log.Printf(url)
-	}
 
 	switch queryType {
 	case "point":

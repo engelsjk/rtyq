@@ -11,6 +11,7 @@ import (
 
 	"github.com/engelsjk/rtyq"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 var (
@@ -44,6 +45,15 @@ func Start(cfg *rtyq.Config) error {
 
 	router := chi.NewRouter()
 
+	// middleware
+	router.Use(middleware.Timeout(10 * time.Second))
+	router.Use(middleware.Recoverer)
+
+	if cfg.EnableLogs {
+		router.Use(middleware.Logger)
+	}
+
+	// add routes for each data layer
 	numRoutes, err := SetRoutes(router, cfg)
 	if err != nil {
 		return err
