@@ -49,7 +49,7 @@ func InitData(path, ext, id string) (*Data, error) {
 // It outputs metrics on the number of files, if they're readable, if they match the
 // the specified file extension, if they're valid GeoJSON Features and if the Features
 // include the specified ID property.
-func (d Data) CheckDirFiles() (int, int, int, int, int, error) {
+func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
 
 	numFiles := 0
 	numFilesWithExtension := 0
@@ -105,7 +105,7 @@ func (d Data) CheckDirFiles() (int, int, int, int, int, error) {
 }
 
 // ReadFile loads a GeoJSON Feature from the input filepath.
-func (d Data) ReadFile(path string) (string, string, error) {
+func (d *Data) ReadFile(path string) (string, string, error) {
 
 	ext := filepath.Ext(path)
 	if ext != d.FileExtension {
