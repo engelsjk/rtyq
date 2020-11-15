@@ -32,10 +32,10 @@ type DB struct {
 }
 
 // NewDB .,,
-func NewDB(path string) *DB {
+func NewDB(path string) DB {
 	fn := filepath.Base(path)
 
-	return &DB{
+	return DB{
 		FilePath: path,
 		FileName: fn,
 	}
@@ -43,7 +43,7 @@ func NewDB(path string) *DB {
 
 // InitDB initializes an DB object, then loads a database
 // if a file already exists or creates a new database if it does not
-func InitDB(path string) (*DB, error) {
+func InitDB(path string) (DB, error) {
 
 	db := NewDB(path)
 
@@ -55,7 +55,7 @@ func InitDB(path string) (*DB, error) {
 
 	bdb, err = db.Load()
 	if err != nil {
-		return nil, err
+		return DB{}, err
 
 	}
 
@@ -66,7 +66,7 @@ func InitDB(path string) (*DB, error) {
 
 // Create initializes a new buntdb.DB object
 // and creates a new database file
-func (db DB) Create() (*buntdb.DB, error) {
+func (db *DB) Create() (*buntdb.DB, error) {
 
 	_, err := os.Stat(db.FilePath)
 
@@ -84,7 +84,7 @@ func (db DB) Create() (*buntdb.DB, error) {
 
 // Load initializes a new buntdb.DB object
 // from an existing database file
-func (db DB) Load() (*buntdb.DB, error) {
+func (db *DB) Load() (*buntdb.DB, error) {
 
 	info, err := os.Stat(db.FilePath)
 	if os.IsNotExist(err) {
@@ -105,7 +105,7 @@ func (db DB) Load() (*buntdb.DB, error) {
 
 // CreateSpatialIndex runs an r-tree spatial index on the database object
 // using the specified index name
-func (db DB) CreateSpatialIndex(index string) error {
+func (db *DB) CreateSpatialIndex(index string) error {
 
 	db.Index = ""
 
@@ -123,7 +123,7 @@ func (db DB) CreateSpatialIndex(index string) error {
 }
 
 // ListIndexes prints out the existing indexes in a buntdb.DB object
-func (db DB) ListIndexes() {
+func (db *DB) ListIndexes() {
 
 	indexes, err := db.db.Indexes()
 	if err != nil {
@@ -134,7 +134,7 @@ func (db DB) ListIndexes() {
 
 // Update adds an object to the database
 // with a key of index:id and a value of a geometry bounds
-func (db DB) Update(id, bounds string) error {
+func (db *DB) Update(id, bounds string) error {
 
 	return db.db.Update(func(tx *buntdb.Tx) error {
 		k := fmt.Sprintf("%s:%s", db.Index, id)
@@ -146,7 +146,7 @@ func (db DB) Update(id, bounds string) error {
 
 // GetResults returns a slice of Result objects from the database
 // that intersect the given bounds
-func (db DB) GetResults(bounds string) ([]Result, error) {
+func (db *DB) GetResults(bounds string) ([]Result, error) {
 
 	results := []Result{}
 

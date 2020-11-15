@@ -104,7 +104,7 @@ func Create(cfg Config) error {
 
 // AddDataToDatabaseWithIndex adds data from a data directory
 // to a database file using the specified index
-func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
+func AddDataToDatabaseWithIndex(data Data, db DB, index string) (int, error) {
 
 	numLoadErrors := 0
 	numUpdateErrors := 0

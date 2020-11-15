@@ -7,7 +7,7 @@ import (
 // GetFeaturesFromID parses an ID string 'id',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromID(id string, data *rtyq.Data) ([][]byte, error) {
+func GetFeaturesFromID(id string, data rtyq.Data) ([][]byte, error) {
 
 	id, err := ParseID(id)
 	if err != nil {
@@ -29,7 +29,7 @@ func ParseID(id string) (string, error) {
 
 // ResolveFeaturesFromID loads GeoJSON data from the data directory
 // by the requested ID and returns a slice of *geojson.Feature
-func ResolveFeaturesFromID(id string, data *rtyq.Data) [][]byte {
+func ResolveFeaturesFromID(id string, data rtyq.Data) [][]byte {
 
 	features := [][]byte{}
 
