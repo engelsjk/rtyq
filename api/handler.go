@@ -51,8 +51,6 @@ func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
 	var statusCode int
 	var response string
 
-	fmt.Printf("%v\n", h)
-
 	point := chi.URLParam(r, "point")
 
 	features, err := query.GetFeaturesFromPoint(point, h.Database, h.Data) // this needs to return bytes
