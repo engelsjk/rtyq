@@ -54,6 +54,12 @@ rtyq start \
 --id="GEOID10" \
 ```
 
+## Performance
+
+## How It Works
+
+## Issues
+
 ## Config File
 
 ```
@@ -102,8 +108,6 @@ rtyq start \
 rtyq create --config="config.json"
 rtyq start --config="config.json"
 ```
-
-## Performance
 
 ## Dependencies
 
