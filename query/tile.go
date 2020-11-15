@@ -117,7 +117,7 @@ func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rty
 			isTileCenterInFeature = planar.MultiPolygonContains(g, tileCenter)
 		}
 		if isTileCenterInFeature {
-			features, err = appendFeature(features, f)
+			features, _ = appendFeature(features, f)
 			continue
 		}
 
