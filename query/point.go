@@ -17,7 +17,7 @@ var (
 // GetFeaturesFromPoint parses a point string 'lon,lat',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromPoint(pt string, db *rtyq.DB, data *rtyq.Data) ([][]byte, error) {
+func GetFeaturesFromPoint(pt string, db rtyq.DB, data rtyq.Data) ([][]byte, error) {
 
 	point, err := ParsePoint(pt)
 	if err != nil {
@@ -59,7 +59,7 @@ func ParsePoint(pt string) (orb.Point, error) {
 
 // ResolveFeaturesFromPoint converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromPoint(pt orb.Point, results []rtyq.Result, data *rtyq.Data) [][]byte {
+func ResolveFeaturesFromPoint(pt orb.Point, results []rtyq.Result, data rtyq.Data) [][]byte {
 
 	features := make([][]byte, len(results))
 

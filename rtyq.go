@@ -12,7 +12,7 @@ import (
 // Check runs through a data directory
 // and prints metrics on the files found
 // for each specified layer
-func Check(cfg *Config) error {
+func Check(cfg Config) error {
 
 	err := ValidateConfigData(cfg)
 	if err != nil {
@@ -47,7 +47,7 @@ func Check(cfg *Config) error {
 // Create initializes a database file
 // and loads all data from a directory
 // for each specified layer
-func Create(cfg *Config) error {
+func Create(cfg Config) error {
 
 	err := ValidateConfigData(cfg)
 	if err != nil {
@@ -104,7 +104,7 @@ func Create(cfg *Config) error {
 
 // AddDataToDatabaseWithIndex adds data from a data directory
 // to a database file using the specified index
-func AddDataToDatabaseWithIndex(data *Data, db *DB, index string) (int, error) {
+func AddDataToDatabaseWithIndex(data Data, db DB, index string) (int, error) {
 
 	numLoadErrors := 0
 	numUpdateErrors := 0

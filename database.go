@@ -32,10 +32,10 @@ type DB struct {
 }
 
 // NewDB .,,
-func NewDB(path string) *DB {
+func NewDB(path string) DB {
 	fn := filepath.Base(path)
 
-	return &DB{
+	return DB{
 		FilePath: path,
 		FileName: fn,
 	}
@@ -43,7 +43,7 @@ func NewDB(path string) *DB {
 
 // InitDB initializes an DB object, then loads a database
 // if a file already exists or creates a new database if it does not
-func InitDB(path string) (*DB, error) {
+func InitDB(path string) (DB, error) {
 
 	db := NewDB(path)
 
@@ -55,7 +55,7 @@ func InitDB(path string) (*DB, error) {
 
 	bdb, err = db.Load()
 	if err != nil {
-		return nil, err
+		return DB{}, err
 
 	}
 

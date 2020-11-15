@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb/geojson"
@@ -32,13 +32,13 @@ type Data struct {
 
 // InitData initializes a Data structure, first checking that
 // the data path exists
-func InitData(path, ext, id string) (*Data, error) {
+func InitData(path, ext, id string) (Data, error) {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, fmt.Errorf("data dir path does not exist")
+		return Data{}, fmt.Errorf("data dir path does not exist")
 	}
 
-	return &Data{
+	return Data{
 		DirPath:       path,
 		FileExtension: ext,
 		ID:            id,
@@ -49,7 +49,7 @@ func InitData(path, ext, id string) (*Data, error) {
 // It outputs metrics on the number of files, if they're readable, if they match the
 // the specified file extension, if they're valid GeoJSON Features and if the Features
 // include the specified ID property.
-func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
+func (d Data) CheckDirFiles() (int, int, int, int, int, error) {
 
 	numFiles := 0
 	numFilesWithExtension := 0
@@ -105,7 +105,7 @@ func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
 }
 
 // ReadFile loads a GeoJSON Feature from the input filepath.
-func (d *Data) ReadFile(path string) (string, string, error) {
+func (d Data) ReadFile(path string) (string, string, error) {
 
 	ext := filepath.Ext(path)
 	if ext != d.FileExtension {
@@ -126,13 +126,15 @@ func (d *Data) ReadFile(path string) (string, string, error) {
 	// todo: remove this switch type and error if id type != string
 
 	var idStr string
-	switch v := id.(type) {
-	case string:
+
+	if v, ok := id.(string); ok {
 		idStr = v
-	case int:
-		idStr = fmt.Sprintf("%d", v)
-	case float64:
-		idStr = fmt.Sprintf("%f", v)
+	}
+	if v, ok := id.(int); ok {
+		idStr = strconv.FormatInt(int64(v), 10)
+	}
+	if v, ok := id.(float64); ok {
+		idStr = strconv.FormatFloat(v, 'f', -1, 64)
 	}
 
 	bound := f.Geometry.Bound()
@@ -150,13 +152,13 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	}
 	defer func(f io.Closer) {
 		if err := f.Close(); err != nil {
-			log.Printf("%s", ErrUnableToCloseDataFile.Error())
+			fmt.Printf("%s", ErrUnableToCloseDataFile.Error())
 		}
 	}(file)
 
-	buf := &bytes.Buffer{}
+	buf := bytes.Buffer{}
 
-	_, err = io.Copy(buf, file)
+	_, err = io.Copy(&buf, file)
 	if err != nil {
 		return nil, err
 	}

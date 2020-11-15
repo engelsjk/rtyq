@@ -27,7 +27,7 @@ type Message struct {
 
 // Start initializes routes for each layer (data/database/index)
 // and starts an api at the specified port
-func Start(cfg *rtyq.Config) error {
+func Start(cfg rtyq.Config) error {
 
 	err := rtyq.ValidateConfigData(cfg)
 	if err != nil {
@@ -80,7 +80,7 @@ func Start(cfg *rtyq.Config) error {
 // SetRoutes initializes all of the API service endpoints. 	/
 // It iterates over each layer to initialize each db with a spatial index
 // and links it to a separate layer endpoint.
-func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
+func SetRoutes(router *chi.Mux, cfg rtyq.Config) (int, error) {
 
 	numRoutes := 0
 	layerEndpoints := []string{}
@@ -125,12 +125,6 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
 		dur := time.Since(start)
 		fmt.Printf("time to index: %s\n", dur)
 
-		handler := Handler{
-			Data:      data,
-			Database:  db,
-			ZoomLimit: layer.Service.ZoomLimit,
-		}
-
 		layerEndpoint := fmt.Sprintf("/%s", layer.Service.Endpoint)
 
 		layerEndpoints = append(layerEndpoints,
@@ -138,6 +132,12 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
 			fmt.Sprintf("%s/%s/%s", layerEndpoint, "point", "{lon,lat}"),
 			fmt.Sprintf("%s/%s/%s", layerEndpoint, "tile", "{z/x/y}"),
 		)
+
+		handler := Handler{
+			Data:      data,
+			Database:  db,
+			ZoomLimit: layer.Service.ZoomLimit,
+		}
 
 		router.Route(layerEndpoint, func(r chi.Router) {
 			r.Get("/point/{point}", func(w http.ResponseWriter, r *http.Request) {
