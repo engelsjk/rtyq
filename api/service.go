@@ -133,7 +133,7 @@ func SetRoutes(router *chi.Mux, cfg rtyq.Config) (int, error) {
 			fmt.Sprintf("%s/%s/%s", layerEndpoint, "tile", "{z/x/y}"),
 		)
 
-		handler := &Handler{
+		handler := Handler{
 			Data:      data,
 			Database:  db,
 			ZoomLimit: layer.Service.ZoomLimit,
