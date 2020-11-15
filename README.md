@@ -7,7 +7,7 @@ Rtyq is a command-line tool used to create spatially indexed databases of polygo
 
 ## Features
 
-* Generates an R-tree spatially indexed database by reading geometry files on disk
+* Generates an [R-tree](https://en.wikipedia.org/wiki/R-tree) spatially indexed database with geometry files read from disk
 * Fast directory traversel using [karrick/godirwalk](https://github.com/karrick/godirwalk)
 * Supports Polygon and MultiPolygon GeoJSON Features 
 * In-memory spatial index and database that persists on disk using [tidwall/buntdb](https://github.com/tidwall/buntdb)
