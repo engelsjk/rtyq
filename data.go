@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb/geojson"
@@ -126,13 +126,15 @@ func (d Data) ReadFile(path string) (string, string, error) {
 	// todo: remove this switch type and error if id type != string
 
 	var idStr string
-	switch v := id.(type) {
-	case string:
+
+	if v, ok := id.(string); ok {
 		idStr = v
-	case int:
-		idStr = fmt.Sprintf("%d", v)
-	case float64:
-		idStr = fmt.Sprintf("%f", v)
+	}
+	if v, ok := id.(int); ok {
+		idStr = strconv.FormatInt(int64(v), 10)
+	}
+	if v, ok := id.(float64); ok {
+		idStr = strconv.FormatFloat(v, 'f', -1, 64)
 	}
 
 	bound := f.Geometry.Bound()
@@ -150,13 +152,13 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	}
 	defer func(f io.Closer) {
 		if err := f.Close(); err != nil {
-			log.Printf("%s", ErrUnableToCloseDataFile.Error())
+			fmt.Printf("%s", ErrUnableToCloseDataFile.Error())
 		}
 	}(file)
 
-	buf := &bytes.Buffer{}
+	buf := bytes.Buffer{}
 
-	_, err = io.Copy(buf, file)
+	_, err = io.Copy(&buf, file)
 	if err != nil {
 		return nil, err
 	}
