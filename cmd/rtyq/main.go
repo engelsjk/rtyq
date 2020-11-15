@@ -54,7 +54,7 @@ func main() {
 			return
 		}
 
-		if cfg == nil {
+		if cfg.Layers == nil {
 			layer := rtyq.ConfigLayer{}
 			layer.Name = *checkLayerName
 			layer.Data.Path = *checkDataDir
@@ -77,7 +77,7 @@ func main() {
 			return
 		}
 
-		if cfg == nil {
+		if cfg.Layers == nil {
 			layer := rtyq.ConfigLayer{}
 			layer.Name = *createLayerName
 			layer.Data.Path = *createDataDir
@@ -102,7 +102,7 @@ func main() {
 			return
 		}
 
-		if cfg == nil {
+		if cfg.Layers == nil {
 			layer := rtyq.ConfigLayer{}
 			layer.Data.Path = *startDataDir
 			layer.Data.Extension = *startDataExt

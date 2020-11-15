@@ -27,7 +27,7 @@ type Message struct {
 
 // Start initializes routes for each layer (data/database/index)
 // and starts an api at the specified port
-func Start(cfg *rtyq.Config) error {
+func Start(cfg rtyq.Config) error {
 
 	err := rtyq.ValidateConfigData(cfg)
 	if err != nil {
@@ -80,12 +80,13 @@ func Start(cfg *rtyq.Config) error {
 // SetRoutes initializes all of the API service endpoints. 	/
 // It iterates over each layer to initialize each db with a spatial index
 // and links it to a separate layer endpoint.
-func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
+func SetRoutes(router *chi.Mux, cfg rtyq.Config) (int, error) {
 
 	numRoutes := 0
+	handlers := make([]Handler, len(cfg.Layers))
 	layerEndpoints := []string{}
 
-	for _, layer := range cfg.Layers {
+	for ii, layer := range cfg.Layers {
 
 		fn := filepath.Base(layer.Database.Path)
 
@@ -129,6 +130,8 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
 			ZoomLimit: layer.Service.ZoomLimit,
 		}
 
+		handlers = append(handlers, handler)
+
 		layerEndpoint := fmt.Sprintf("/%s", layer.Service.Endpoint)
 
 		layerEndpoints = append(layerEndpoints,
@@ -139,13 +142,13 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
 
 		router.Route(layerEndpoint, func(r chi.Router) {
 			r.Get("/point/{point}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "point", cfg.EnableLogs)
+				handlers[ii].HandleLayer(w, r, "point", cfg.EnableLogs)
 			})
 			r.Get("/tile/{z}/{x}/{y}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "tile", cfg.EnableLogs)
+				handlers[ii].HandleLayer(w, r, "tile", cfg.EnableLogs)
 			})
 			r.Get("/id/{id}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "id", cfg.EnableLogs)
+				handlers[ii].HandleLayer(w, r, "id", cfg.EnableLogs)
 			})
 		})
 

@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb/geojson"
@@ -33,13 +32,13 @@ type Data struct {
 
 // InitData initializes a Data structure, first checking that
 // the data path exists
-func InitData(path, ext, id string) (*Data, error) {
+func InitData(path, ext, id string) (Data, error) {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, fmt.Errorf("data dir path does not exist")
+		return Data{}, fmt.Errorf("data dir path does not exist")
 	}
 
-	return &Data{
+	return Data{
 		DirPath:       path,
 		FileExtension: ext,
 		ID:            id,
@@ -106,7 +105,7 @@ func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
 }
 
 // ReadFile loads a GeoJSON Feature from the input filepath.
-func (d *Data) ReadFile(path string) (string, string, error) {
+func (d Data) ReadFile(path string) (string, string, error) {
 
 	ext := filepath.Ext(path)
 	if ext != d.FileExtension {
@@ -170,28 +169,6 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	}
 
 	return f, nil
-}
-
-// FeaturesToString converts a slice of geojson.Features to a comma-separated
-// array string
-func FeaturesToString(features []*geojson.Feature) string {
-
-	if features == nil {
-		return "[]"
-	}
-
-	featuresStr := []string{}
-
-	for _, f := range features {
-		b, err := f.MarshalJSON()
-		if err != nil {
-			continue
-		}
-		featuresStr = append(featuresStr, string(b))
-	}
-
-	out := fmt.Sprintf("[%s]", strings.Join(featuresStr, ","))
-	return out
 }
 
 // FilePath returns the full filepath from a directory, file ID and file extension.

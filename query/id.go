@@ -2,13 +2,12 @@ package query
 
 import (
 	"github.com/engelsjk/rtyq"
-	"github.com/paulmach/orb/geojson"
 )
 
 // GetFeaturesFromID parses an ID string 'id',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromID(id string, data *rtyq.Data) ([]*geojson.Feature, error) {
+func GetFeaturesFromID(id string, data rtyq.Data) ([][]byte, error) {
 
 	id, err := ParseID(id)
 	if err != nil {
@@ -30,9 +29,9 @@ func ParseID(id string) (string, error) {
 
 // ResolveFeaturesFromID loads GeoJSON data from the data directory
 // by the requested ID and returns a slice of *geojson.Feature
-func ResolveFeaturesFromID(id string, data *rtyq.Data) []*geojson.Feature {
+func ResolveFeaturesFromID(id string, data rtyq.Data) [][]byte {
 
-	features := []*geojson.Feature{}
+	features := [][]byte{}
 
 	fp := rtyq.FilePath(data.DirPath, id, data.FileExtension)
 
@@ -41,6 +40,7 @@ func ResolveFeaturesFromID(id string, data *rtyq.Data) []*geojson.Feature {
 		return features
 	}
 
-	features = append(features, f)
+	features, _ = appendFeature(features, f)
+
 	return features
 }

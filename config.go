@@ -1,9 +1,11 @@
 package rtyq
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log"
 	"os"
 )
 
@@ -54,35 +56,43 @@ type Config struct {
 }
 
 // NewConfig creates a new config from a single data layer
-func NewConfig(layer ConfigLayer) *Config {
-	return &Config{
-		Layers: []ConfigLayer{layer},
-	}
+func NewConfig(layer ConfigLayer) Config {
+	config := Config{}
+	config.Layers = append(config.Layers, layer)
+	return config
 }
 
 // LoadConfig creates a new config from a JSON file
-func LoadConfig(path string) (*Config, error) {
+func LoadConfig(path string) (Config, error) {
 
 	if path == "" {
-		return nil, nil
+		return Config{}, nil
 	}
 
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, ErrConfigOpenFile
+		return Config{}, err
 	}
-	defer file.Close()
+	defer func(f io.Closer) {
+		if err := f.Close(); err != nil {
+			log.Printf("%s", ErrUnableToCloseDataFile.Error())
+		}
+	}(file)
 
-	b, err := ioutil.ReadAll(file)
+	buf := &bytes.Buffer{}
+
+	_, err = io.Copy(buf, file)
 	if err != nil {
-		return nil, ErrConfigReadFile
+		return Config{}, err
 	}
 
-	var config *Config
+	b := buf.Bytes()
+
+	config := Config{}
 
 	err = json.Unmarshal(b, &config)
 	if err != nil {
-		return nil, ErrConfigInvalidStructure
+		return Config{}, ErrConfigInvalidStructure
 	}
 
 	return config, nil
@@ -90,11 +100,7 @@ func LoadConfig(path string) (*Config, error) {
 
 // ValidateConfigData checks a config to ensure
 // that it is properly instantiated for data
-func ValidateConfigData(cfg *Config) error {
-
-	if cfg == nil {
-		return ErrConfigNotInitialized
-	}
+func ValidateConfigData(cfg Config) error {
 
 	if cfg.Layers == nil {
 		return ErrConfigNoLayersProvided
@@ -133,11 +139,7 @@ func ValidateConfigLayerData(layer ConfigLayer) error {
 
 // ValidateConfigDatabase checks a config to ensure
 // that it is properly instantiated for database
-func ValidateConfigDatabase(cfg *Config) error {
-
-	if cfg == nil {
-		return ErrConfigNotInitialized
-	}
+func ValidateConfigDatabase(cfg Config) error {
 
 	if cfg.Layers == nil {
 		return ErrConfigNoLayersProvided
@@ -175,11 +177,7 @@ func ValidateConfigLayerDatabase(layer ConfigLayer) error {
 
 // ValidateConfigServiceOnly checks a single config layer to ensure
 // that it is properly instantiated for api service
-func ValidateConfigServiceOnly(cfg *Config) error {
-
-	if cfg == nil {
-		return ErrConfigNotInitialized
-	}
+func ValidateConfigServiceOnly(cfg Config) error {
 
 	if cfg.Layers == nil {
 		return ErrConfigNoLayersProvided

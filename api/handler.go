@@ -13,8 +13,8 @@ import (
 // to Data and Database structures, and includes a
 // zoom limit integer
 type Handler struct {
-	Data      *rtyq.Data
-	Database  *rtyq.DB
+	Data      rtyq.Data
+	Database  rtyq.DB
 	ZoomLimit int
 }
 
@@ -30,7 +30,7 @@ var (
 
 // HandleLayer parses an API query by type and runs a response function
 // to write the query response
-func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType string, enableLogs bool) {
+func (h Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType string, enableLogs bool) {
 
 	switch queryType {
 	case "point":
@@ -46,14 +46,14 @@ func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType 
 	}
 }
 
-func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
+func responsePoint(w http.ResponseWriter, r *http.Request, h Handler) {
 
 	var statusCode int
 	var response string
 
 	point := chi.URLParam(r, "point")
 
-	features, err := query.GetFeaturesFromPoint(point, h.Database, h.Data)
+	features, err := query.GetFeaturesFromPoint(point, h.Database, h.Data) // this needs to return bytes
 
 	if err != nil {
 
@@ -74,13 +74,13 @@ func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
 		return
 	}
 
-	response = rtyq.FeaturesToString(features)
+	response = query.FeaturesToString(features)
 
 	w.Write([]byte(response))
 	return
 }
 
-func responseTile(w http.ResponseWriter, r *http.Request, h *Handler) {
+func responseTile(w http.ResponseWriter, r *http.Request, h Handler) {
 
 	var statusCode int
 	var response string
@@ -115,13 +115,13 @@ func responseTile(w http.ResponseWriter, r *http.Request, h *Handler) {
 		return
 	}
 
-	response = rtyq.FeaturesToString(features)
+	response = query.FeaturesToString(features)
 
 	w.Write([]byte(response))
 	return
 }
 
-func responseID(w http.ResponseWriter, r *http.Request, h *Handler) {
+func responseID(w http.ResponseWriter, r *http.Request, h Handler) {
 
 	var statusCode int
 	var response string
@@ -152,7 +152,7 @@ func responseID(w http.ResponseWriter, r *http.Request, h *Handler) {
 		return
 	}
 
-	response = rtyq.FeaturesToString(features)
+	response = query.FeaturesToString(features)
 
 	w.Write([]byte(response))
 	return
