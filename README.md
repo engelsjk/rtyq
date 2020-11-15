@@ -4,7 +4,7 @@ Rtyq is a command-line tool used to create spatially indexed databases of polygo
 
 ## Hybrid Data Model
 
-Rtyq uses a hybrid data model for querying geometry data in order to resolve feature bounding box overlap issues. Database filesizes are minimized by only storing feature IDs. Fast, R-tree spatial queries (i.e. Intersect) return a best-guess set of features ID's which are used to load geometry from files on disk. Slower, last-mile spatial checks on feature geometries are used to resolve overlap issues, namely point-in-polygon checks for point queries and high-zoom tile overlap checks for tile queries.
+Rtyq uses a hybrid data model for querying geometry data in order to resolve feature bounding box overlap issues. Database filesizes are minimized by only storing feature IDs. Fast, R-tree spatial queries (i.e. Intersect) return a best-guess set of features ID's which are used to load geometry from files on disk. Slower, last-mile spatial checks on feature geometries are used to resolve overlap issues, namely point-in-polygon checks for point queries and high-zoom level tile overlap checks for tile queries.
 
 ## Features
 
