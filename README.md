@@ -1,4 +1,7 @@
-# Rtyq
+<p align="center">
+    <img src="/.github/images/logo.png" 
+    width="175" border="0" alt="rtyq"></a>
+</p>
 
 Rtyq is a command-line tool used to create spatially indexed databases of polygon data and to provide an API for spatial queries. It creates persisent database files on disk and generates in-memory R-tree spatial indexes to do (very) fast queries. Rtyq supports queries by point, tile or feature ID and serves GeoJSON data via a REST API. 
 
