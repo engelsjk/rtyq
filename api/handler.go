@@ -30,7 +30,7 @@ var (
 
 // HandleLayer parses an API query by type and runs a response function
 // to write the query response
-func (h Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType string, enableLogs bool) {
+func (h *Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType string, enableLogs bool) {
 
 	switch queryType {
 	case "point":
@@ -46,7 +46,7 @@ func (h Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType s
 	}
 }
 
-func responsePoint(w http.ResponseWriter, r *http.Request, h Handler) {
+func responsePoint(w http.ResponseWriter, r *http.Request, h *Handler) {
 
 	var statusCode int
 	var response string
@@ -82,7 +82,7 @@ func responsePoint(w http.ResponseWriter, r *http.Request, h Handler) {
 	return
 }
 
-func responseTile(w http.ResponseWriter, r *http.Request, h Handler) {
+func responseTile(w http.ResponseWriter, r *http.Request, h *Handler) {
 
 	var statusCode int
 	var response string
@@ -123,7 +123,7 @@ func responseTile(w http.ResponseWriter, r *http.Request, h Handler) {
 	return
 }
 
-func responseID(w http.ResponseWriter, r *http.Request, h Handler) {
+func responseID(w http.ResponseWriter, r *http.Request, h *Handler) {
 
 	var statusCode int
 	var response string
