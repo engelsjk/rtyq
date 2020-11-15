@@ -7,7 +7,6 @@ import (
 
 	"github.com/engelsjk/rtyq"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/planar"
 )
 
@@ -18,7 +17,7 @@ var (
 // GetFeaturesFromPoint parses a point string 'lon,lat',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromPoint(pt string, db *rtyq.DB, data *rtyq.Data) ([]*geojson.Feature, error) {
+func GetFeaturesFromPoint(pt string, db *rtyq.DB, data *rtyq.Data) ([][]byte, error) {
 
 	point, err := ParsePoint(pt)
 	if err != nil {
@@ -60,9 +59,9 @@ func ParsePoint(pt string) (orb.Point, error) {
 
 // ResolveFeaturesFromPoint converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromPoint(pt orb.Point, results []rtyq.Result, data *rtyq.Data) []*geojson.Feature {
+func ResolveFeaturesFromPoint(pt orb.Point, results []rtyq.Result, data *rtyq.Data) [][]byte {
 
-	features := []*geojson.Feature{}
+	features := make([][]byte, len(results))
 
 	for _, r := range results {
 
@@ -85,9 +84,11 @@ func ResolveFeaturesFromPoint(pt orb.Point, results []rtyq.Result, data *rtyq.Da
 			continue
 		}
 
-		if isPtInFeature {
-			features = append(features, f)
+		if !isPtInFeature {
+			continue
 		}
+
+		features, _ = appendFeature(features, f)
 	}
 
 	return features

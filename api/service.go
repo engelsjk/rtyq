@@ -85,7 +85,9 @@ func SetRoutes(router *chi.Mux, cfg *rtyq.Config) (int, error) {
 	numRoutes := 0
 	layerEndpoints := []string{}
 
-	for _, layer := range cfg.Layers {
+	for ii := 0; ii < len(cfg.Layers); ii++ {
+
+		layer := cfg.Layers[ii]
 
 		fn := filepath.Base(layer.Database.Path)
 

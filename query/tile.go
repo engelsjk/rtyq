@@ -7,7 +7,6 @@ import (
 
 	"github.com/engelsjk/rtyq"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
 	"github.com/paulmach/orb/maptile/tilecover"
 	"github.com/paulmach/orb/planar"
@@ -21,7 +20,7 @@ var (
 // GetFeaturesFromTile parses a tile string 'z/x/y',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromTile(t string, zoomLimit int, db *rtyq.DB, data *rtyq.Data) ([]*geojson.Feature, error) {
+func GetFeaturesFromTile(t string, zoomLimit int, db *rtyq.DB, data *rtyq.Data) ([][]byte, error) {
 
 	tile, err := ParseTile(t)
 	if err != nil {
@@ -77,13 +76,13 @@ func ParseTile(t string) (maptile.Tile, error) {
 
 // ResolveFeaturesFromTile converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rtyq.Data) []*geojson.Feature {
+func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rtyq.Data) [][]byte {
 
 	var zoomOffset = 5
 	var zoomMax = 22
 
 	var newZoom maptile.Zoom
-	features := []*geojson.Feature{}
+	features := [][]byte{}
 
 	// uptile and get min/max tiles
 
@@ -118,7 +117,7 @@ func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rty
 			isTileCenterInFeature = planar.MultiPolygonContains(g, tileCenter)
 		}
 		if isTileCenterInFeature {
-			features = append(features, f)
+			features, err = appendFeature(features, f)
 			continue
 		}
 
@@ -131,7 +130,7 @@ func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rty
 		for tile := range tileSet {
 			if (tile.X >= minTile.X && tile.Y >= minTile.Y) &&
 				(tile.X <= maxTile.X && tile.Y <= maxTile.Y) {
-				features = append(features, f)
+				features, _ = appendFeature(features, f)
 				break
 			}
 		}

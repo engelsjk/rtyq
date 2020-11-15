@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb/geojson"
@@ -170,28 +169,6 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 	}
 
 	return f, nil
-}
-
-// FeaturesToString converts a slice of geojson.Features to a comma-separated
-// array string
-func FeaturesToString(features []*geojson.Feature) string {
-
-	if features == nil {
-		return "[]"
-	}
-
-	featuresStr := []string{}
-
-	for _, f := range features {
-		b, err := f.MarshalJSON()
-		if err != nil {
-			continue
-		}
-		featuresStr = append(featuresStr, string(b))
-	}
-
-	out := fmt.Sprintf("[%s]", strings.Join(featuresStr, ","))
-	return out
 }
 
 // FilePath returns the full filepath from a directory, file ID and file extension.
