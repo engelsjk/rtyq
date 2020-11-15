@@ -32,13 +32,13 @@ type Data struct {
 
 // InitData initializes a Data structure, first checking that
 // the data path exists
-func InitData(path, ext, id string) (Data, error) {
+func InitData(path, ext, id string) (*Data, error) {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return Data{}, fmt.Errorf("data dir path does not exist")
+		return nil, fmt.Errorf("data dir path does not exist")
 	}
 
-	return Data{
+	return &Data{
 		DirPath:       path,
 		FileExtension: ext,
 		ID:            id,
@@ -49,7 +49,7 @@ func InitData(path, ext, id string) (Data, error) {
 // It outputs metrics on the number of files, if they're readable, if they match the
 // the specified file extension, if they're valid GeoJSON Features and if the Features
 // include the specified ID property.
-func (d *Data) CheckDirFiles() (int, int, int, int, int, error) {
+func (d Data) CheckDirFiles() (int, int, int, int, int, error) {
 
 	numFiles := 0
 	numFilesWithExtension := 0

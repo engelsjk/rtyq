@@ -20,7 +20,7 @@ var (
 // GetFeaturesFromTile parses a tile string 'z/x/y',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromTile(t string, zoomLimit int, db rtyq.DB, data rtyq.Data) ([][]byte, error) {
+func GetFeaturesFromTile(t string, zoomLimit int, db *rtyq.DB, data *rtyq.Data) ([][]byte, error) {
 
 	tile, err := ParseTile(t)
 	if err != nil {
@@ -76,7 +76,7 @@ func ParseTile(t string) (maptile.Tile, error) {
 
 // ResolveFeaturesFromTile converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data rtyq.Data) [][]byte {
+func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data *rtyq.Data) [][]byte {
 
 	var zoomOffset = 5
 	var zoomMax = 22

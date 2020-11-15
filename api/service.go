@@ -83,10 +83,12 @@ func Start(cfg rtyq.Config) error {
 func SetRoutes(router *chi.Mux, cfg rtyq.Config) (int, error) {
 
 	numRoutes := 0
-	handlers := make([]Handler, len(cfg.Layers))
+	handlers := make(map[string]*Handler)
 	layerEndpoints := []string{}
 
-	for ii, layer := range cfg.Layers {
+	for ii := 0; ii < len(cfg.Layers); ii++ {
+
+		layer := cfg.Layers[ii]
 
 		fn := filepath.Base(layer.Database.Path)
 
@@ -124,14 +126,6 @@ func SetRoutes(router *chi.Mux, cfg rtyq.Config) (int, error) {
 		dur := time.Since(start)
 		fmt.Printf("time to index: %s\n", dur)
 
-		handler := Handler{
-			Data:      data,
-			Database:  db,
-			ZoomLimit: layer.Service.ZoomLimit,
-		}
-
-		handlers = append(handlers, handler)
-
 		layerEndpoint := fmt.Sprintf("/%s", layer.Service.Endpoint)
 
 		layerEndpoints = append(layerEndpoints,
@@ -140,15 +134,21 @@ func SetRoutes(router *chi.Mux, cfg rtyq.Config) (int, error) {
 			fmt.Sprintf("%s/%s/%s", layerEndpoint, "tile", "{z/x/y}"),
 		)
 
+		handlers[layerEndpoint] = &Handler{
+			Data:      data,
+			Database:  db,
+			ZoomLimit: layer.Service.ZoomLimit,
+		}
+
 		router.Route(layerEndpoint, func(r chi.Router) {
 			r.Get("/point/{point}", func(w http.ResponseWriter, r *http.Request) {
-				handlers[ii].HandleLayer(w, r, "point", cfg.EnableLogs)
+				handlers[layerEndpoint].HandleLayer(w, r, "point", cfg.EnableLogs)
 			})
 			r.Get("/tile/{z}/{x}/{y}", func(w http.ResponseWriter, r *http.Request) {
-				handlers[ii].HandleLayer(w, r, "tile", cfg.EnableLogs)
+				handlers[layerEndpoint].HandleLayer(w, r, "tile", cfg.EnableLogs)
 			})
 			r.Get("/id/{id}", func(w http.ResponseWriter, r *http.Request) {
-				handlers[ii].HandleLayer(w, r, "id", cfg.EnableLogs)
+				handlers[layerEndpoint].HandleLayer(w, r, "id", cfg.EnableLogs)
 			})
 		})
 

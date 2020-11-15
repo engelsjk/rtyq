@@ -13,8 +13,8 @@ import (
 // to Data and Database structures, and includes a
 // zoom limit integer
 type Handler struct {
-	Data      rtyq.Data
-	Database  rtyq.DB
+	Data      *rtyq.Data
+	Database  *rtyq.DB
 	ZoomLimit int
 }
 
@@ -50,6 +50,8 @@ func responsePoint(w http.ResponseWriter, r *http.Request, h Handler) {
 
 	var statusCode int
 	var response string
+
+	fmt.Printf("%v\n", h)
 
 	point := chi.URLParam(r, "point")
 
