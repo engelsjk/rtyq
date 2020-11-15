@@ -5,14 +5,6 @@
 
 Rtyq is a command-line tool used to create spatially indexed databases of polygon data and to provide an API for spatial queries. It creates persisent database files on disk and generates in-memory R-tree spatial indexes to do (very) fast queries. Rtyq supports queries by point, tile or feature ID and serves GeoJSON data via a REST API. 
 
-## Hybrid Data Model
-
-Rtyq uses a hybrid data model for querying geometry data in order to resolve feature bounding box overlap issues. 
-
-* Database filesizes are minimized by only storing feature IDs.
-* R-tree spatial index provides fast queries (i.e. Intersect) which return a best-guess set of features ID's that are used to load geometry from files on disk. 
-* Slower last-mile spatial checks on feature geometries are used to resolve overlap issues, namely point-in-polygon checks for point queries and high-zoom level tile overlap checks for tile queries.
-
 ## Features
 
 * Generates an R-tree spatially indexed database by reading geometry files on disk
@@ -23,6 +15,14 @@ Rtyq uses a hybrid data model for querying geometry data in order to resolve fea
 * REST API allows queries by point, tile or ID using [go-chi/chi](https://github.com/go-chi/chi)
 * API response as JSON array of GeoJSON Features
 * CLI flags for single data layer or config.json file for multiple data layers
+
+## Hybrid Data Model
+
+Rtyq uses a hybrid data model for querying geometry data in order to resolve feature bounding box overlap issues. 
+
+* Database filesizes are minimized by only storing feature IDs.
+* R-tree spatial index provides fast queries (i.e. Intersect) which return a best-guess set of features ID's that are used to load geometry from files on disk. 
+* Slower last-mile spatial checks on feature geometries are used to resolve overlap issues, namely point-in-polygon checks for point queries and high-zoom level tile overlap checks for tile queries.
 
 ## Install
 
