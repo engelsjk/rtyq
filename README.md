@@ -58,6 +58,13 @@ rtyq start \
 
 ## How It Works
 
+### Last Mile Check
+
+<p align="center">
+    <img src="/.github/images/last-mile.png" 
+    width="500" border="0" alt="rtyq"></a>
+</p>
+
 ## Issues
 
 ## Config File
