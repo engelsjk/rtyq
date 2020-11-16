@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb/geojson"
@@ -175,8 +176,10 @@ func LoadFeature(path string) (*geojson.Feature, error) {
 
 // FilePath returns the full filepath from a directory, file ID and file extension.
 func FilePath(dir, id, ext string) string {
-	fn := fmt.Sprintf("%s%s", id, ext)
-	fp := filepath.Join(dir, fn)
+	var sb strings.Builder
+	sb.WriteString(id)
+	sb.WriteString(ext)
+	fp := filepath.Join(dir, sb.String())
 	return fp
 }
 

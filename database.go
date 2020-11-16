@@ -109,10 +109,9 @@ func (db *DB) CreateSpatialIndex(index string) error {
 
 	db.Index = ""
 
-	name := index
-	pattern := fmt.Sprintf("%s:*", index)
+	pattern := db.pattern()
 
-	err := db.db.CreateSpatialIndex(name, pattern, buntdb.IndexRect)
+	err := db.db.CreateSpatialIndex(index, pattern, buntdb.IndexRect)
 	if err != nil {
 		return ErrSpatialIndexCreate
 	}
@@ -120,6 +119,23 @@ func (db *DB) CreateSpatialIndex(index string) error {
 	db.Index = index
 
 	return nil
+}
+
+func (db *DB) pattern() string {
+	var sb strings.Builder
+	sb.WriteString(db.Index)
+	sb.WriteString(":*")
+	pattern := sb.String()
+	return pattern
+}
+
+func (db *DB) key(id string) string {
+	var sb strings.Builder
+	sb.WriteString(db.Index)
+	sb.WriteString(":")
+	sb.WriteString(id)
+	key := sb.String()
+	return key
 }
 
 // ListIndexes prints out the existing indexes in a buntdb.DB object
@@ -137,7 +153,7 @@ func (db *DB) ListIndexes() {
 func (db *DB) Update(id, bounds string) error {
 
 	return db.db.Update(func(tx *buntdb.Tx) error {
-		k := fmt.Sprintf("%s:%s", db.Index, id)
+		k := db.key(id)
 		v := bounds
 		tx.Set(k, v, nil)
 		return nil
