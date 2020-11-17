@@ -20,11 +20,11 @@ type Handler struct {
 
 var (
 	ErrUnknown               error = fmt.Errorf(`{"error": "unknown"}`)
-	ErrBadQueryParam         error = fmt.Errorf(`{"error": "please provide a valid query parameter (pt, tile or id)"}`)
+	ErrBadQueryParam         error = fmt.Errorf(`{"error": "invalid query parameter"}`)
 	ErrUnknownQueryType      error = fmt.Errorf(`{"error": "unknown query type"}`)
-	ErrInvalidPoint          error = fmt.Errorf(`{"error": "please provide a valid lon,lat point"}`)
-	ErrInvalidTile           error = fmt.Errorf(`{"error": "please provide a valid z/x/y tile"}`)
-	ErrTileZoomLimitExceeded error = fmt.Errorf(`{"error": "tile request zoom limit exceeded"}`)
+	ErrInvalidPoint          error = fmt.Errorf(`{"error": "invalid lon,lat point"}`)
+	ErrInvalidTile           error = fmt.Errorf(`{"error": "invalid z/x/y tile"}`)
+	ErrTileZoomLimitExceeded error = fmt.Errorf(`{"error": "tile request exceeded zoom limit"}`)
 	ErrUnableToGetDataFromDB error = fmt.Errorf(`{"error": "unable to get data from db"}`)
 )
 

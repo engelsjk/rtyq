@@ -119,6 +119,8 @@ func AddDataToDatabaseWithIndex(data Data, db DB, index string) (int, error) {
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
 
+				progress.Add(1)
+
 				id, bound, err := data.ReadFile(path)
 				if err != nil {
 					numLoadErrors++
@@ -132,7 +134,6 @@ func AddDataToDatabaseWithIndex(data Data, db DB, index string) (int, error) {
 				}
 
 				numFiles++
-				progress.Add(1)
 			}
 			return nil
 		},

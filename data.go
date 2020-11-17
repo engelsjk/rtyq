@@ -65,6 +65,7 @@ func (d Data) CheckDirFiles() (int, int, int, int, int, error) {
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
 
+				progress.Add(1)
 				numFiles++
 
 				_, _, err := d.ReadFile(path)
@@ -89,7 +90,6 @@ func (d Data) CheckDirFiles() (int, int, int, int, int, error) {
 				}
 				numFilesWithID++
 
-				progress.Add(1)
 				return nil
 			}
 			return nil

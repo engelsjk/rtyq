@@ -6,10 +6,8 @@ import (
 	"strings"
 
 	"github.com/engelsjk/rtyq"
-	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
-	"github.com/paulmach/orb/maptile/tilecover"
-	"github.com/paulmach/orb/planar"
 )
 
 var (
@@ -76,65 +74,43 @@ func ParseTile(t string) (maptile.Tile, error) {
 
 // ResolveFeaturesFromTile converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromTile(tile maptile.Tile, results []rtyq.Result, data rtyq.Data) [][]byte {
+func ResolveFeaturesFromTile(tile maptile.Tile, results rtyq.Results, data rtyq.Data) [][]byte {
 
-	var zoomOffset = 5
-	var zoomMax = 22
-
-	var newZoom maptile.Zoom
 	features := [][]byte{}
 
-	// uptile and get min/max tiles
+	tileset := make(maptile.Set)
+	tileset[tile] = true
 
-	zoomInt := int(tile.Z)
-	if zoomInt+zoomOffset > zoomMax {
-		newZoom = maptile.Zoom(zoomMax)
-	} else {
-		newZoom = maptile.Zoom(zoomInt + zoomOffset)
-	}
-	minTile, maxTile := tile.Range(newZoom)
+	tilesetN := uptile(tileset, 3)
 
-	// iterate  over results...
+	// iterate  over results
+	// and check if tiles overlap feature geometry
 
-	for _, r := range results {
+	for k := range results {
 
-		fp := rtyq.FilePath(data.DirPath, r.ID, data.FileExtension)
+		defer delete(results, k)
+
+		_, id := rtyq.ParseKey(k)
+
+		fp := rtyq.FilePath(data.DirPath, id, data.FileExtension)
 
 		f, err := rtyq.LoadFeature(fp)
 		if err != nil {
 			continue
 		}
 
-		// check if tile center is in feature (only for polygons and multipolygons)...
-
-		tileCenter := tile.Bound().Center()
-		isTileCenterInFeature := false
-		geom := f.Geometry
-		switch g := geom.(type) {
-		case orb.Polygon:
-			isTileCenterInFeature = planar.PolygonContains(g, tileCenter)
-		case orb.MultiPolygon:
-			isTileCenterInFeature = planar.MultiPolygonContains(g, tileCenter)
-		}
-		if isTileCenterInFeature {
+		if doTilesOverlapGeometry(f.Geometry, tilesetN) {
 			features, _ = appendFeature(features, f)
-			continue
-		}
-
-		// todo: does the above work for non-polygon or non-multipolygon cases?
-		// todo: are points and linestrings/multilinestrings handled by the below?
-
-		// iterate over feature tileset at uptile zoom level, and check for any tile matchs
-
-		tileSet := tilecover.Geometry(geom, newZoom)
-		for tile := range tileSet {
-			if (tile.X >= minTile.X && tile.Y >= minTile.Y) &&
-				(tile.X <= maxTile.X && tile.Y <= maxTile.Y) {
-				features, _ = appendFeature(features, f)
-				break
-			}
 		}
 	}
 
 	return features
+}
+
+func printFeature(f *geojson.Feature) {
+	b, err := f.MarshalJSON()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s\n", string(b))
 }

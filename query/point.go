@@ -7,7 +7,6 @@ import (
 
 	"github.com/engelsjk/rtyq"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/planar"
 )
 
 var (
@@ -59,36 +58,29 @@ func ParsePoint(pt string) (orb.Point, error) {
 
 // ResolveFeaturesFromPoint converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromPoint(pt orb.Point, results []rtyq.Result, data rtyq.Data) [][]byte {
+func ResolveFeaturesFromPoint(pt orb.Point, results rtyq.Results, data rtyq.Data) [][]byte {
 
-	features := make([][]byte, len(results))
+	features := [][]byte{}
 
-	for _, r := range results {
+	// iterate  over results
+	// and check if point is in feature geometry
 
-		fp := rtyq.FilePath(data.DirPath, r.ID, data.FileExtension)
+	for k := range results {
+
+		defer delete(results, k)
+
+		_, id := rtyq.ParseKey(k)
+
+		fp := rtyq.FilePath(data.DirPath, id, data.FileExtension)
 
 		f, err := rtyq.LoadFeature(fp)
 		if err != nil {
 			continue
 		}
 
-		isPtInFeature := false
-
-		geom := f.Geometry
-		switch g := geom.(type) {
-		case orb.Polygon:
-			isPtInFeature = planar.PolygonContains(g, pt)
-		case orb.MultiPolygon:
-			isPtInFeature = planar.MultiPolygonContains(g, pt)
-		default:
-			continue
+		if isPointInFeature(f.Geometry, pt) {
+			features, _ = appendFeature(features, f)
 		}
-
-		if !isPtInFeature {
-			continue
-		}
-
-		features, _ = appendFeature(features, f)
 	}
 
 	return features

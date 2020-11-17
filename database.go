@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/paulmach/orb"
@@ -107,16 +108,15 @@ func (db *DB) Load() (*buntdb.DB, error) {
 // using the specified index name
 func (db *DB) CreateSpatialIndex(index string) error {
 
-	db.Index = ""
+	db.Index = index
 
 	pattern := db.pattern()
 
 	err := db.db.CreateSpatialIndex(index, pattern, buntdb.IndexRect)
 	if err != nil {
+		db.Index = ""
 		return ErrSpatialIndexCreate
 	}
-
-	db.Index = index
 
 	return nil
 }
@@ -162,16 +162,13 @@ func (db *DB) Update(id, bounds string) error {
 
 // GetResults returns a slice of Result objects from the database
 // that intersect the given bounds
-func (db *DB) GetResults(bounds string) ([]Result, error) {
+func (db *DB) GetResults(bounds string) (Results, error) {
 
-	results := []Result{}
+	results := make(Results)
 
 	err := db.db.View(func(tx *buntdb.Tx) error {
 		tx.Intersects(db.Index, bounds, func(k, v string) bool {
-			kv := fmt.Sprintf("%s:%s", k, v)
-			r := ParseResult(kv)
-			results = append(results, r)
-
+			results[k] = v
 			return true
 		})
 		return nil
@@ -184,50 +181,62 @@ func (db *DB) GetResults(bounds string) ([]Result, error) {
 	return results, nil
 }
 
-// Result is an object that contains Index, ID and Bounds
-// of an object returned from a database
-type Result struct {
-	Index  string
-	ID     string
-	Bounds string
-}
+// Results is a map that contains Index:ID (key) and Bounds (value)
+// of all objects returned from a database
+type Results map[string]string
 
-// ParseResult converts a string output from a database query
-// into a Result object
-func ParseResult(result string) Result {
-
-	r := strings.Split(result, ":")
-
-	if len(r) != 3 {
-		return Result{}
-	}
-
+// ParseKey ...
+func ParseKey(k string) (string, string) {
+	r := strings.Split(k, ":")
 	index := r[0]
 	id := r[1]
-	bounds := r[2]
-
-	return Result{Index: index, ID: id, Bounds: bounds}
+	return index, id
 }
 
 // Bounds converts a geometry object (eg orb.Point or maptile.Tile)
 // to the string format required to query the database
 func Bounds(o interface{}) string {
 
-	var bounds string
+	var sb strings.Builder
 
 	switch v := o.(type) {
 	case orb.Point:
-		bounds = fmt.Sprintf("[%f %f]", v.Lon(), v.Lat())
+
+		// bounds = [lon lat]
+
+		lon := strconv.FormatFloat(v.Lon(), 'f', -1, 64)
+		lat := strconv.FormatFloat(v.Lat(), 'f', -1, 64)
+
+		sb.WriteString("[")
+		sb.WriteString(lon)
+		sb.WriteString(" ")
+		sb.WriteString(lat)
+		sb.WriteString("]")
+
 	case maptile.Tile:
-		bounds = fmt.Sprintf("[%f %f], [%f %f]",
-			v.Bound().Min.Lon(),
-			v.Bound().Min.Lat(),
-			v.Bound().Max.Lon(),
-			v.Bound().Max.Lat(),
-		)
+
+		// bounds = [minLon minLat], [maxLon maxLat]
+
+		minLon := strconv.FormatFloat(v.Bound().Min.Lon(), 'f', -1, 64)
+		minLat := strconv.FormatFloat(v.Bound().Min.Lat(), 'f', -1, 64)
+		maxLon := strconv.FormatFloat(v.Bound().Max.Lon(), 'f', -1, 64)
+		maxLat := strconv.FormatFloat(v.Bound().Max.Lat(), 'f', -1, 64)
+
+		sb.WriteString("[")
+		sb.WriteString(minLon)
+		sb.WriteString(" ")
+		sb.WriteString(minLat)
+		sb.WriteString("], [")
+		sb.WriteString(maxLon)
+		sb.WriteString(" ")
+		sb.WriteString(maxLat)
+		sb.WriteString("]")
+
 	default:
 		//
 	}
+
+	bounds := sb.String()
 
 	return bounds
 }
