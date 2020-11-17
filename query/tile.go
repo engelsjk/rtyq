@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/engelsjk/rtyq"
-	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
 )
 
@@ -105,12 +104,4 @@ func ResolveFeaturesFromTile(tile maptile.Tile, results rtyq.Results, data rtyq.
 	}
 
 	return features
-}
-
-func printFeature(f *geojson.Feature) {
-	b, err := f.MarshalJSON()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%s\n", string(b))
 }
