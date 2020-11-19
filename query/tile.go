@@ -3,9 +3,9 @@ package query
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/engelsjk/rtyq"
+	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
 )
 
@@ -17,9 +17,9 @@ var (
 // GetFeaturesFromTile parses a tile string 'z/x/y',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromTile(t string, zoomLimit int, db rtyq.DB, data rtyq.Data) ([][]byte, error) {
+func GetFeaturesFromTile(z, x, y string, zoomLimit int, db rtyq.DB, data rtyq.Data) ([]*geojson.Feature, error) {
 
-	tile, err := ParseTile(t)
+	tile, err := ParseTile(z, x, y)
 	if err != nil {
 		return nil, err
 	}
@@ -41,23 +41,17 @@ func GetFeaturesFromTile(t string, zoomLimit int, db rtyq.DB, data rtyq.Data) ([
 }
 
 // ParseTile converts a tile string 'z/x/y' to a maptile.Tile object
-func ParseTile(t string) (maptile.Tile, error) {
+func ParseTile(zs, xs, ys string) (maptile.Tile, error) {
 
-	spl := strings.Split(t, "/")
-
-	if len(spl) != 3 {
-		return maptile.Tile{}, ErrInvalidTile
-	}
-
-	z, err := strconv.ParseInt(spl[0], 10, 32)
+	z, err := strconv.ParseInt(zs, 10, 32)
 	if err != nil {
 		return maptile.Tile{}, ErrInvalidTile
 	}
-	x, err := strconv.ParseInt(spl[1], 10, 32)
+	x, err := strconv.ParseInt(xs, 10, 32)
 	if err != nil {
 		return maptile.Tile{}, ErrInvalidTile
 	}
-	y, err := strconv.ParseInt(spl[2], 10, 32)
+	y, err := strconv.ParseInt(ys, 10, 32)
 	if err != nil {
 		return maptile.Tile{}, ErrInvalidTile
 	}
@@ -73,9 +67,9 @@ func ParseTile(t string) (maptile.Tile, error) {
 
 // ResolveFeaturesFromTile converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromTile(tile maptile.Tile, results rtyq.Results, data rtyq.Data) [][]byte {
+func ResolveFeaturesFromTile(tile maptile.Tile, results rtyq.Results, data rtyq.Data) []*geojson.Feature {
 
-	features := [][]byte{}
+	features := []*geojson.Feature{}
 
 	tileset := make(maptile.Set)
 	tileset[tile] = true
@@ -99,7 +93,7 @@ func ResolveFeaturesFromTile(tile maptile.Tile, results rtyq.Results, data rtyq.
 		}
 
 		if doTilesOverlapGeometry(f.Geometry, tilesetN) {
-			features, _ = appendFeature(features, f)
+			appendFeature(features, f)
 		}
 	}
 

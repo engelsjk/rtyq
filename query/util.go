@@ -1,8 +1,7 @@
 package query
 
 import (
-	"bytes"
-	"fmt"
+	"encoding/json"
 
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
@@ -10,25 +9,28 @@ import (
 	"github.com/paulmach/orb/planar"
 )
 
-// FeaturesToString converts a slice of geojson.Features to a comma-separated
-// array string
-func FeaturesToString(features [][]byte) string {
-
-	if features == nil {
-		return "[]"
-	}
-
-	out := fmt.Sprintf("[%s]", string(bytes.Join(features, []byte(","))))
-	return out
+// EmptyResponse ...
+func EmptyResponse() []byte {
+	return []byte("[]")
 }
 
-func appendFeature(bs [][]byte, f *geojson.Feature) ([][]byte, error) {
-	b, err := f.MarshalJSON()
-	if err != nil {
-		return bs, err
+// FeaturesToResponse converts a slice of geojson.Features to a byte slice
+func FeaturesToResponse(fs []*geojson.Feature) []byte {
+
+	if fs == nil {
+		return EmptyResponse()
 	}
-	bs = append(bs, b)
-	return bs, nil
+
+	resp, err := json.Marshal(&fs)
+	if err != nil {
+		return EmptyResponse()
+	}
+
+	return resp
+}
+
+func appendFeature(fs []*geojson.Feature, f *geojson.Feature) {
+	fs = append(fs, f)
 }
 
 func isPointInFeature(geom orb.Geometry, pt orb.Point) bool {

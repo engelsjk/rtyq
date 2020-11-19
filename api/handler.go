@@ -48,74 +48,35 @@ func (h Handler) HandleLayer(w http.ResponseWriter, r *http.Request, queryType s
 
 func responsePoint(w http.ResponseWriter, r *http.Request, h Handler) {
 
-	var statusCode int
-	var response string
-
 	point := chi.URLParam(r, "point")
 
 	features, err := query.GetFeaturesFromPoint(point, h.Database, h.Data) // this needs to return bytes
 
 	if err != nil {
-
-		switch err {
-		case query.ErrInvalidPoint:
-			statusCode = http.StatusBadRequest
-			response = ErrInvalidPoint.Error()
-		case rtyq.ErrDatabaseFailedToGetResults:
-			statusCode = http.StatusInternalServerError
-			response = ErrUnableToGetDataFromDB.Error()
-		default:
-			statusCode = http.StatusInternalServerError
-			response = ErrUnknown.Error()
-		}
-
-		w.WriteHeader(statusCode)
-		w.Write([]byte(response))
+		responseError(w, err)
 		return
 	}
 
-	response = query.FeaturesToString(features)
+	response := query.FeaturesToResponse(features)
 
-	w.Write([]byte(response))
+	w.Write(response)
 	return
 }
 
 func responseTile(w http.ResponseWriter, r *http.Request, h Handler) {
 
-	var statusCode int
-	var response string
-
 	z := chi.URLParam(r, "z")
 	x := chi.URLParam(r, "x")
 	y := chi.URLParam(r, "y")
 
-	tile := fmt.Sprintf("%s/%s/%s", z, x, y)
-
-	features, err := query.GetFeaturesFromTile(tile, h.ZoomLimit, h.Database, h.Data)
+	features, err := query.GetFeaturesFromTile(z, x, y, h.ZoomLimit, h.Database, h.Data)
 
 	if err != nil {
-
-		switch err {
-		case query.ErrInvalidTile:
-			statusCode = http.StatusBadRequest
-			response = ErrInvalidTile.Error()
-		case query.ErrTileZoomLimitExceeded:
-			statusCode = http.StatusBadRequest
-			response = ErrTileZoomLimitExceeded.Error()
-		case rtyq.ErrDatabaseFailedToGetResults:
-			statusCode = http.StatusInternalServerError
-			response = ErrUnableToGetDataFromDB.Error()
-		default:
-			statusCode = http.StatusInternalServerError
-			response = ErrUnknown.Error()
-		}
-
-		w.WriteHeader(statusCode)
-		w.Write([]byte(response))
+		responseError(w, err)
 		return
 	}
 
-	response = query.FeaturesToString(features)
+	response := query.FeaturesToResponse(features)
 
 	w.Write([]byte(response))
 	return
@@ -123,37 +84,41 @@ func responseTile(w http.ResponseWriter, r *http.Request, h Handler) {
 
 func responseID(w http.ResponseWriter, r *http.Request, h Handler) {
 
-	var statusCode int
-	var response string
-
 	id := chi.URLParam(r, "id")
 
 	features, err := query.GetFeaturesFromID(id, h.Data)
 
 	if err != nil {
-
-		switch err {
-		case query.ErrInvalidTile:
-			statusCode = http.StatusBadRequest
-			response = ErrInvalidTile.Error()
-		case query.ErrTileZoomLimitExceeded:
-			statusCode = http.StatusBadRequest
-			response = ErrTileZoomLimitExceeded.Error()
-		case rtyq.ErrDatabaseFailedToGetResults:
-			statusCode = http.StatusInternalServerError
-			response = ErrUnableToGetDataFromDB.Error()
-		default:
-			statusCode = http.StatusInternalServerError
-			response = ErrUnknown.Error()
-		}
-
-		w.WriteHeader(statusCode)
-		w.Write([]byte(response))
+		responseError(w, err)
 		return
 	}
 
-	response = query.FeaturesToString(features)
+	response := query.FeaturesToResponse(features)
 
 	w.Write([]byte(response))
 	return
+}
+
+func responseError(w http.ResponseWriter, err error) {
+
+	var statusCode int
+	var response []byte
+
+	switch err {
+	case query.ErrInvalidTile:
+		statusCode = http.StatusBadRequest
+		response = []byte(ErrInvalidTile.Error())
+	case query.ErrTileZoomLimitExceeded:
+		statusCode = http.StatusBadRequest
+		response = []byte(ErrTileZoomLimitExceeded.Error())
+	case rtyq.ErrDatabaseFailedToGetResults:
+		statusCode = http.StatusInternalServerError
+		response = []byte(ErrUnableToGetDataFromDB.Error())
+	default:
+		statusCode = http.StatusInternalServerError
+		response = []byte(ErrUnknown.Error())
+	}
+
+	w.WriteHeader(statusCode)
+	w.Write([]byte(response))
 }

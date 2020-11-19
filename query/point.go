@@ -7,6 +7,7 @@ import (
 
 	"github.com/engelsjk/rtyq"
 	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geojson"
 )
 
 var (
@@ -16,7 +17,7 @@ var (
 // GetFeaturesFromPoint parses a point string 'lon,lat',
 // queries the database for results and returns
 // the results as a slice of *geojson.Feature
-func GetFeaturesFromPoint(pt string, db rtyq.DB, data rtyq.Data) ([][]byte, error) {
+func GetFeaturesFromPoint(pt string, db rtyq.DB, data rtyq.Data) ([]*geojson.Feature, error) {
 
 	point, err := ParsePoint(pt)
 	if err != nil {
@@ -58,9 +59,9 @@ func ParsePoint(pt string) (orb.Point, error) {
 
 // ResolveFeaturesFromPoint converts the results from a database query,
 // loads GeoJSON data from the data directory and returns a slice of *geojson.Feature
-func ResolveFeaturesFromPoint(pt orb.Point, results rtyq.Results, data rtyq.Data) [][]byte {
+func ResolveFeaturesFromPoint(pt orb.Point, results rtyq.Results, data rtyq.Data) []*geojson.Feature {
 
-	features := [][]byte{}
+	features := []*geojson.Feature{}
 
 	// iterate  over results
 	// and check if point is in feature geometry
@@ -79,7 +80,7 @@ func ResolveFeaturesFromPoint(pt orb.Point, results rtyq.Results, data rtyq.Data
 		}
 
 		if isPointInFeature(f.Geometry, pt) {
-			features, _ = appendFeature(features, f)
+			appendFeature(features, f)
 		}
 	}
 
