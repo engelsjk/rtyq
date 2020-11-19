@@ -41,7 +41,7 @@ func ResolveFeaturesFromID(id string, data rtyq.Data) []*geojson.Feature {
 		return features
 	}
 
-	appendFeature(features, f)
+	features = appendFeature(features, f)
 
 	return features
 }

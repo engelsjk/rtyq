@@ -29,8 +29,9 @@ func FeaturesToResponse(fs []*geojson.Feature) []byte {
 	return resp
 }
 
-func appendFeature(fs []*geojson.Feature, f *geojson.Feature) {
+func appendFeature(fs []*geojson.Feature, f *geojson.Feature) []*geojson.Feature {
 	fs = append(fs, f)
+	return fs
 }
 
 func isPointInFeature(geom orb.Geometry, pt orb.Point) bool {

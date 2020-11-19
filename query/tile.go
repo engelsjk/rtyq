@@ -93,7 +93,7 @@ func ResolveFeaturesFromTile(tile maptile.Tile, results rtyq.Results, data rtyq.
 		}
 
 		if doTilesOverlapGeometry(f.Geometry, tilesetN) {
-			appendFeature(features, f)
+			features = appendFeature(features, f)
 		}
 	}
 
