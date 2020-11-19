@@ -50,7 +50,7 @@ type ConfigLayer struct {
 // along with the single port to run the service on
 type Config struct {
 	Port          int           `json:"port"`
-	EnableLogs    bool          `json:"enable_logs"`
+	EnableDebug   bool          `json:"enable_debug"`
 	ThrottleLimit int           `json:"throttle_limit"`
 	Layers        []ConfigLayer `json:"layers"`
 }

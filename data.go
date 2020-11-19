@@ -118,51 +118,45 @@ func (d Data) ReadFile(path string) (string, string, error) {
 		return "", "", err
 	}
 
-	id, ok := f.Properties[d.ID]
+	fid, ok := f.Properties[d.ID]
 
 	if !ok {
 		return "", "", ErrMissingFeatureID
 	}
 
-	// todo: remove this switch type and error if id type != string
+	var id string
 
-	var idStr string
-
-	if v, ok := id.(string); ok {
-		idStr = v
+	if v, ok := fid.(string); ok {
+		id = v
 	}
-	if v, ok := id.(int); ok {
-		idStr = strconv.FormatInt(int64(v), 10)
+	if v, ok := fid.(int); ok {
+		id = strconv.FormatInt(int64(v), 10)
 	}
-	if v, ok := id.(float64); ok {
-		idStr = strconv.FormatFloat(v, 'f', -1, 64)
+	if v, ok := fid.(float64); ok {
+		id = strconv.FormatFloat(v, 'f', -1, 64)
 	}
 
-	bound := f.Geometry.Bound()
-	boundStr := fmt.Sprintf("[%f %f],[%f %f]", bound.Min.X(), bound.Min.Y(), bound.Max.X(), bound.Max.Y())
+	bounds := Bounds(f.Geometry)
 
-	return idStr, boundStr, nil
+	return id, bounds, nil
 }
 
 // LoadFeature opens, reads and unmarshals a GeoJSON Feature from the input filepath.
 func LoadFeature(path string) (*geojson.Feature, error) {
 
 	file, err := os.Open(path)
+
 	if err != nil {
+		if file != nil {
+			file.Close()
+		}
 		return nil, err
 	}
-	defer func(f io.Closer) {
-		if err := f.Close(); err != nil {
-			fmt.Printf("%s", ErrUnableToCloseDataFile.Error())
-		}
-	}(file)
 
 	buf := bytes.Buffer{}
 
-	_, err = io.Copy(&buf, file)
-	if err != nil {
-		return nil, err
-	}
+	io.Copy(&buf, file)
+	file.Close()
 
 	b := buf.Bytes()
 

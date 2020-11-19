@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	grmon "github.com/bcicen/grmon/agent"
 	"github.com/engelsjk/rtyq"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -47,14 +48,18 @@ func Start(cfg rtyq.Config) error {
 	router := chi.NewRouter()
 
 	// middleware
-	router.Use(render.SetContentType(render.ContentTypeJSON))
-	router.Use(middleware.Timeout(10 * time.Second))
-	router.Use(middleware.Throttle(cfg.ThrottleLimit))
+	router.Use(
+		render.SetContentType(render.ContentTypeJSON),
+		middleware.Compress(5, "gzip"),
+		middleware.Timeout(10*time.Second),
+		middleware.Throttle(cfg.ThrottleLimit),
+		middleware.Recoverer,
+	)
 
-	router.Use(middleware.Recoverer)
-
-	if cfg.EnableLogs {
+	if cfg.EnableDebug {
 		router.Use(middleware.Logger)
+		router.Mount("/debug", middleware.Profiler())
+		grmon.Start()
 	}
 
 	// add routes for each data layer
@@ -141,13 +146,13 @@ func SetRoutes(router *chi.Mux, cfg rtyq.Config) (int, error) {
 
 		router.Route(layerEndpoint, func(r chi.Router) {
 			r.Get("/point/{point}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "point", cfg.EnableLogs)
+				handler.HandleLayer(w, r, "point")
 			})
 			r.Get("/tile/{z}/{x}/{y}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "tile", cfg.EnableLogs)
+				handler.HandleLayer(w, r, "tile")
 			})
 			r.Get("/id/{id}", func(w http.ResponseWriter, r *http.Request) {
-				handler.HandleLayer(w, r, "id", cfg.EnableLogs)
+				handler.HandleLayer(w, r, "id")
 			})
 		})
 

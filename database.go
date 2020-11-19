@@ -213,6 +213,44 @@ func Bounds(o interface{}) string {
 		sb.WriteString(lat)
 		sb.WriteString("]")
 
+	case orb.Polygon:
+
+		// bounds = [minLon minLat], [maxLon maxLat]
+
+		minLon := strconv.FormatFloat(v.Bound().Min.Lon(), 'f', -1, 64)
+		minLat := strconv.FormatFloat(v.Bound().Min.Lat(), 'f', -1, 64)
+		maxLon := strconv.FormatFloat(v.Bound().Max.Lon(), 'f', -1, 64)
+		maxLat := strconv.FormatFloat(v.Bound().Max.Lat(), 'f', -1, 64)
+
+		sb.WriteString("[")
+		sb.WriteString(minLon)
+		sb.WriteString(" ")
+		sb.WriteString(minLat)
+		sb.WriteString("], [")
+		sb.WriteString(maxLon)
+		sb.WriteString(" ")
+		sb.WriteString(maxLat)
+		sb.WriteString("]")
+
+	case orb.MultiPolygon:
+
+		// bounds = [minLon minLat], [maxLon maxLat]
+
+		minLon := strconv.FormatFloat(v.Bound().Min.Lon(), 'f', -1, 64)
+		minLat := strconv.FormatFloat(v.Bound().Min.Lat(), 'f', -1, 64)
+		maxLon := strconv.FormatFloat(v.Bound().Max.Lon(), 'f', -1, 64)
+		maxLat := strconv.FormatFloat(v.Bound().Max.Lat(), 'f', -1, 64)
+
+		sb.WriteString("[")
+		sb.WriteString(minLon)
+		sb.WriteString(" ")
+		sb.WriteString(minLat)
+		sb.WriteString("], [")
+		sb.WriteString(maxLon)
+		sb.WriteString(" ")
+		sb.WriteString(maxLat)
+		sb.WriteString("]")
+
 	case maptile.Tile:
 
 		// bounds = [minLon minLat], [maxLon maxLat]
