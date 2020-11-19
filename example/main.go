@@ -54,6 +54,6 @@ func main() {
 
 	features := query.ResolveFeaturesFromPoint(point, results, data)
 
-	fmt.Printf("%s\n", query.FeaturesToString(features))
+	fmt.Printf("%s\n", query.FeaturesToResponse(features))
 
 }
