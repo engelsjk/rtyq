@@ -56,8 +56,11 @@ func Start(cfg rtyq.Config) error {
 		middleware.Recoverer,
 	)
 
-	if cfg.EnableDebug {
+	if cfg.EnableLogs {
 		router.Use(middleware.Logger)
+	}
+
+	if cfg.EnableDebug {
 		router.Mount("/debug", middleware.Profiler())
 		grmon.Start()
 	}

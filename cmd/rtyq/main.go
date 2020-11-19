@@ -39,6 +39,7 @@ var (
 	startEndpoint      = start.Flag("endpoint", "endpoint").String()
 	startLayerName     = start.Flag("name", "name").String()
 	startPort          = start.Flag("port", "api port").Default("5500").Int()
+	startEnableLogs    = start.Flag("logs", "enable logs").Default("false").Bool()
 	startEnableDebug   = start.Flag("debug", "enable debug").Default("false").Bool()
 	startThrottleLimit = start.Flag("throttle", "throttle limit").Default("100").Int()
 )
@@ -114,6 +115,7 @@ func main() {
 			layer.Name = *startLayerName
 			cfg = rtyq.NewConfig(layer)
 			cfg.Port = *startPort
+			cfg.EnableLogs = *startEnableLogs
 			cfg.EnableDebug = *startEnableDebug
 			cfg.ThrottleLimit = *startThrottleLimit
 		}
