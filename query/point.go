@@ -78,7 +78,6 @@ func ResolveFeaturesFromPoint(pt orb.Point, results rtyq.Results, data rtyq.Data
 		if err != nil {
 			continue
 		}
-		fmt.Println(f)
 
 		if isPointInFeature(f.Geometry, pt) {
 			features = appendFeature(features, f)
