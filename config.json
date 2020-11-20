@@ -1,0 +1,25 @@
+{
+    "server" : {
+        "port": 5501,
+        "logs": true,
+        "debug": false,
+        "throttle": 1001,
+        "readtimeoutsec": 21
+    },
+    "layers": [
+        {
+            "name": "blocks",
+            "data": {
+                "dir": "/home/engelsjk/Projects/Boundaries/2019/blocks/items",
+                "ext": ".geojson",
+                "id": "GEOID"
+            },
+            "database": {
+                "filepath": "blocks.db",
+                "index": "blocks"
+            },
+            "endpoint": "blocks",
+            "zoomlimit": 6
+        }
+    ]
+}
