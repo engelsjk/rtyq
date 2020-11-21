@@ -3,14 +3,14 @@ module github.com/engelsjk/rtyq
 go 1.15
 
 require (
-	github.com/CrunchyData/pg_featureserv v1.1.1 // indirect
+	github.com/CrunchyData/pg_featureserv v1.1.1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/bcicen/grmon v0.0.0-20190725134940-6c3770b6af49
 	github.com/bcicen/termui v0.0.0-20180326052246-4eb80249d3f5 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-chi/cors v1.1.1 // indirect
+	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/render v1.0.1
 	github.com/karrick/godirwalk v1.16.1
 	github.com/magiconair/properties v1.8.4 // indirect
@@ -35,6 +35,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/tools v0.0.0-20201105001634-bc3cf281b174
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect

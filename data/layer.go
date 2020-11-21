@@ -2,9 +2,7 @@ package data
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strconv"
+	"math"
 
 	"github.com/engelsjk/rtyq/conf"
 	"github.com/karrick/godirwalk"
@@ -12,86 +10,68 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
+var Layers map[string]*Layer
+
+func init() {
+	Layers = make(map[string]*Layer)
+}
+
 type Layer struct {
-	Name     string
-	Dir      string
-	Ext      string
-	ID       string
-	Filepath string
-	Index    string
-	db       *buntdb.DB
+	Name       string
+	DataDir    string
+	DataExt    string
+	DataID     string
+	DBFilepath string
+	DBIndex    string
+	db         *buntdb.DB
 }
 
-type layerError struct {
-	Error   error
-	Type    string
-	Message string
+func NewLayer(layer conf.Layer) *Layer {
+	return &Layer{
+		Name:       layer.Name,
+		DataDir:    layer.Data.Dir,
+		DataExt:    layer.Data.Ext,
+		DataID:     layer.Data.ID,
+		DBFilepath: layer.Database.Filepath,
+		DBIndex:    layer.Database.Index,
+	}
 }
 
-func CreateLayer(layer conf.Layer) (*Layer, error) {
+func (l *Layer) CheckData() error {
 
-	if _, err := os.Stat(layer.Data.Dir); os.IsNotExist(err) {
-		return nil, layerErrorDirNotFound(err).Error
+	if !dirExists(l.DataDir) {
+		// log error
+		return fmt.Errorf("data dir does not exist")
 	}
 
-	return &Layer{
-		Name:     layer.Name,
-		Dir:      layer.Data.Dir,
-		Ext:      layer.Data.Ext,
-		ID:       layer.Data.ID,
-		Filepath: layer.Database.Filepath,
-		Index:    layer.Database.Index,
-	}, nil
-}
-
-func (l Layer) CheckData() error {
-
 	numFiles := 0
-	numReadableFiles := 0
-	numFilesWithExtension := 0
-	numFilesWithID := 0
+	var minFilesize int64 = math.MaxInt64
+	var maxFilesize int64 = math.MinInt64
 
 	fmt.Printf("layer (%s)\n", l.Name)
 	fmt.Printf("checking data path...\n")
 
 	progress := progressbar.Default(-1)
 
-	err := godirwalk.Walk(l.Dir, &godirwalk.Options{
+	err := godirwalk.Walk(l.DataDir, &godirwalk.Options{
 		Unsorted: true,
 		Callback: func(path string, de *godirwalk.Dirent) error {
 			if de.ModeType().IsRegular() {
-
 				progress.Add(1)
+
+				if !validExtension(path, l.DataExt) {
+					// log error
+					return nil // or return error to skip?
+				}
+
+				nbytes, _, _, err := read(path, l.DataID)
+				if err != nil {
+					return err
+				}
+
 				numFiles++
-
-				_, _, err := l.readFile(path)
-				if err == nil {
-					numFilesWithExtension++
-					numReadableFiles++
-					numFilesWithID++
-					return nil
-				}
-
-				if err.Type == "err_invalid_file_extension" {
-					return err.Error
-				}
-				numFilesWithExtension++
-
-				if err.Type == "error_load_feature" {
-					return err.Error
-				}
-				numReadableFiles++
-
-				if err.Type == "error_no_id" {
-					return err.Error
-				}
-				numFilesWithID++
-
-				if err.Type != "" {
-					return err.Error
-				}
-
-				return err.Error
+				minFilesize = minBytes(minFilesize, nbytes)
+				maxFilesize = maxBytes(maxFilesize, nbytes)
 			}
 			return nil
 		},
@@ -105,60 +85,97 @@ func (l Layer) CheckData() error {
 
 	fmt.Println() // print new line after progress bar
 	fmt.Printf("files found: %d\n", numFiles)
-	fmt.Printf("files w/ extension (%s): %d\n", l.Ext, numFilesWithExtension)
-	fmt.Printf("files readable: %d\n", numReadableFiles)
-	fmt.Printf("files w/ property id (%s): %d\n", l.ID, numFilesWithID)
+	fmt.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize) // convert to KB (bytes/1024)
 
 	return nil
 }
 
-func (l Layer) readFile(path string) (string, string, *layerError) {
-
-	ext := filepath.Ext(path)
-	if ext != l.Ext {
-		return "", "", layerErrorInvalidFileExtension(nil)
+func (l *Layer) CreateDatabase() error {
+	if fileExists(l.DBFilepath) {
+		return fmt.Errorf("database file already exists")
 	}
-
-	f, err := loadFeature(path)
+	_, err := buntdb.Open(l.DBFilepath)
 	if err != nil {
-		return "", "", layerErrorLoadFeature(err)
+		return err
 	}
-
-	fid, ok := f.Properties[l.ID]
-
-	if !ok {
-		return "", "", layerErrorNoID(err)
-	}
-
-	var id string
-
-	if v, ok := fid.(string); ok {
-		id = v
-	}
-	if v, ok := fid.(int); ok {
-		id = strconv.FormatInt(int64(v), 10)
-	}
-	if v, ok := fid.(float64); ok {
-		id = strconv.FormatFloat(v, 'f', -1, 64)
-	}
-
-	bounds := bounds(f.Geometry)
-
-	return id, bounds, nil
+	return nil
 }
 
-func layerErrorDirNotFound(err error) *layerError {
-	return &layerError{err, "err_dir_not_found", "data dir not found"}
+func (l *Layer) LoadDatabase() error {
+	if !fileExists(l.DBFilepath) {
+		return fmt.Errorf("database file does not exists")
+	}
+	l.db = nil
+	bdb, err := buntdb.Open(l.DBFilepath)
+	if err != nil {
+		return err
+	}
+	l.db = bdb
+	return nil
 }
 
-func layerErrorInvalidFileExtension(err error) *layerError {
-	return &layerError{err, "err_invalid_file_extension", "file has invalid extension"}
+func (l *Layer) AddDataToDatabase() error {
+
+	if !dirExists(l.DataDir) {
+		// log error
+		return fmt.Errorf("data dir does not exist")
+	}
+	if !fileExists(l.DBFilepath) {
+		// log error
+		return fmt.Errorf("database file does not exist")
+	}
+	if l.db == nil {
+		// log error
+		return fmt.Errorf("database not loaded")
+	}
+
+	fmt.Printf("layer (%s)\n", l.Name)
+	fmt.Printf("uploading data to database...\n")
+
+	numLoadErrors := 0
+	numUpdateErrors := 0
+	numFiles := 0
+
+	progress := progressbar.Default(-1)
+
+	err := godirwalk.Walk(l.DataDir, &godirwalk.Options{
+		Unsorted: true,
+		Callback: func(path string, de *godirwalk.Dirent) error {
+			if de.ModeType().IsRegular() {
+
+				progress.Add(1)
+
+				_, id, bound, err := read(path, l.DataID)
+				if err != nil {
+					numLoadErrors++
+					return err
+				}
+
+				err = dbUpdate(l.db, l.DBIndex, id, bound)
+				if err != nil {
+					numUpdateErrors++
+					return err
+				}
+
+				numFiles++
+			}
+			return nil
+		},
+		ErrorCallback: func(path string, err error) godirwalk.ErrorAction {
+			return godirwalk.SkipNode
+		},
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println() // print new line after progress bar
+	if numLoadErrors > 0 || numUpdateErrors > 0 {
+		fmt.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
+	}
+	fmt.Printf("num files loaded to db: %d\n", numFiles)
+	return nil
 }
 
-func layerErrorLoadFeature(err error) *layerError {
-	return &layerError{err, "err_load_feature", "unable to load data file"}
-}
-
-func layerErrorNoID(err error) *layerError {
-	return &layerError{err, "error_no_id", "no feature id"}
+func AddToLayers(layer *Layer) {
+	Layers[layer.Name] = layer
 }

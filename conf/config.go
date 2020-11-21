@@ -103,9 +103,10 @@ func InitConfig(configFilename string) {
 	}
 
 	zap.L().Info("using config file", zap.String("filename", confFile))
-	viper.Unmarshal(&Configuration)
-
-	fmt.Println(Configuration)
+	err = viper.Unmarshal(&Configuration)
+	if err != nil {
+		// log error
+	}
 }
 
 // // ValidateConfigData checks a config to ensure

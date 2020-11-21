@@ -54,6 +54,8 @@ func Create() *http.Server {
 		router.Use(middleware.Logger)
 	}
 
+	addRoutes(router)
+
 	server := &http.Server{
 		ReadTimeout:  time.Duration(conf.Configuration.Server.ReadTimeoutSec) * time.Second,
 		WriteTimeout: time.Duration(timeoutSecWrite) * time.Second,

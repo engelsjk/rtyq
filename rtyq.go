@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -62,26 +63,78 @@ func main() {
 }
 
 func check() {
-
 	for _, confLayer := range conf.Configuration.Layers {
-
-		layer, err := data.CreateLayer(confLayer)
+		layer := data.NewLayer(confLayer)
+		err := layer.CheckData()
 		if err != nil {
-			panic(err)
-		}
-
-		err = layer.CheckData()
-		if err != nil {
-			panic(err)
+			// log error
+			fmt.Println(err)
+			continue
 		}
 	}
 }
 
-func create() {}
+func create() {
+	for _, confLayer := range conf.Configuration.Layers {
 
-func start() {}
+		layer := data.NewLayer(confLayer)
 
-func load() {}
+		err := layer.CreateDatabase()
+		if err != nil {
+			// log error
+			fmt.Println(err)
+			continue
+		}
+
+		err = layer.LoadDatabase()
+		if err != nil {
+			// log error
+			fmt.Println(err)
+			continue
+		}
+
+		err = layer.AddDataToDatabase()
+		if err != nil {
+			// log error
+			fmt.Println(err)
+			continue
+		}
+	}
+}
+
+func load() {
+
+	// create layer map
+	// load databases for each layer map
+	// create spatial index for each database
+	// pass map to start
+
+	for _, confLayer := range conf.Configuration.Layers {
+
+		layer := data.NewLayer(confLayer)
+
+		err := layer.LoadDatabase()
+		if err != nil {
+			// log error
+			fmt.Println(err)
+			continue
+		}
+
+		// err = layer.IndexDatabase()
+		// if err != nil {
+		// 	// log error
+		// 	fmt.Println(err)
+		// 	continue
+		// }
+
+		data.AddToLayers(layer)
+	}
+}
+
+func start() {
+	load()
+	serve()
+}
 
 func serve() {
 

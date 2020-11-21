@@ -8,17 +8,17 @@
     },
     "layers": [
         {
-            "name": "blocks",
+            "name": "counties",
             "data": {
-                "dir": "/home/engelsjk/Projects/Boundaries/2019/blocks/items",
+                "dir": "/home/engelsjk/Projects/Boundaries/2019/counties/items",
                 "ext": ".geojson",
                 "id": "GEOID"
             },
             "database": {
-                "filepath": "blocks.db",
-                "index": "blocks"
+                "filepath": "counties.db",
+                "index": "counties"
             },
-            "endpoint": "blocks",
+            "endpoint": "counties",
             "zoomlimit": 6
         }
     ]
