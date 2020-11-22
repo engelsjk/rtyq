@@ -30,7 +30,7 @@ func init() {
 	}
 }
 
-func (q Query) Point(layer string, pt string) ([]*geojson.Feature, error) {
+func (q Query) Point(layer string, pt string) ([]geojson.Feature, error) {
 
 	if _, ok := q.layers[layer]; !ok {
 		return nil, ErrQueryNoLayer
@@ -41,15 +41,18 @@ func (q Query) Point(layer string, pt string) ([]*geojson.Feature, error) {
 		return nil, ErrQueryInvalidPoint
 	}
 
-	fs, err := q.layers[layer].intersects(*point)
+	fmt.Printf("query: %v\n", *point)
+
+	features, err := q.layers[layer].intersects(*point)
 	if err != nil {
 		return nil, ErrQueryRequest
 	}
+	fmt.Printf("query: %v\n", features)
 
-	return fs, nil
+	return features, nil
 }
 
-func (q Query) Tile(layer string, x, y, z string) ([]*geojson.Feature, error) {
+func (q Query) Tile(layer string, x, y, z string) ([]geojson.Feature, error) {
 
 	if _, ok := q.layers[layer]; !ok {
 		return nil, ErrQueryNoLayer
@@ -66,15 +69,15 @@ func (q Query) Tile(layer string, x, y, z string) ([]*geojson.Feature, error) {
 
 	fmt.Printf("%v\n", tile)
 
-	fs, err := q.layers[layer].intersects(*tile)
+	features, err := q.layers[layer].intersects(*tile)
 	if err != nil {
 		return nil, ErrQueryRequest
 	}
 
-	return fs, nil
+	return features, nil
 }
 
-func (q Query) ID(layer string, id string) ([]*geojson.Feature, error) {
+func (q Query) ID(layer string, id string) ([]geojson.Feature, error) {
 
 	if _, ok := q.layers[layer]; !ok {
 		return nil, ErrQueryNoLayer
@@ -89,7 +92,7 @@ func (q Query) ID(layer string, id string) ([]*geojson.Feature, error) {
 		return nil, nil
 	}
 
-	return []*geojson.Feature{f}, nil
+	return []geojson.Feature{*f}, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

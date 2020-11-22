@@ -56,6 +56,7 @@ func handlePoint(w http.ResponseWriter, r *http.Request) *serverError {
 	if err != nil {
 		return errorQueryToServer(err)
 	}
+	fmt.Printf("handler: %v\n", features)
 
 	return writeJSON(w, ContentTypeJSON, features)
 }

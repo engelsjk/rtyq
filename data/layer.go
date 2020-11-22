@@ -94,6 +94,7 @@ func (l *Layer) CheckData() error {
 //////////////////////////////////////////////////////////
 
 func (l *Layer) CreateDatabase() error {
+
 	if fileExists(l.DBFilepath) {
 		return fmt.Errorf("database file already exists")
 	}
@@ -109,6 +110,7 @@ func (l *Layer) CreateDatabase() error {
 }
 
 func (l *Layer) LoadDatabase() error {
+
 	if !fileExists(l.DBFilepath) {
 		return fmt.Errorf("database file does not exists")
 	}
@@ -193,15 +195,15 @@ func (l *Layer) IndexDatabase() error {
 	return l.db.CreateSpatialIndex(l.DBIndex, dbPattern(l.DBIndex), buntdb.IndexRect)
 }
 
-func (l *Layer) intersects(o interface{}) ([]*geojson.Feature, error) {
+func (l *Layer) intersects(o interface{}) ([]geojson.Feature, error) {
 
-	var features []*geojson.Feature
+	var features []geojson.Feature
 
 	if err := l.db.View(func(tx *buntdb.Tx) error {
 		tx.Intersects(l.DBIndex, bounds(o), func(k, v string) bool {
 			f := resolve(l, k, o)
 			if f != nil {
-				features = append(features, f)
+				features = append(features, *f)
 			}
 			return true
 		})

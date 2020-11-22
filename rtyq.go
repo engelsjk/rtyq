@@ -140,6 +140,8 @@ func load() {
 
 		layer := data.NewLayer(confLayer)
 
+		// todo: check if data dir exists
+
 		if err := layer.LoadDatabase(); err != nil {
 			// log error
 			fmt.Println(err)
