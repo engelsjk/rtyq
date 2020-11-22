@@ -56,9 +56,8 @@ func handlePoint(w http.ResponseWriter, r *http.Request) *serverError {
 	if err != nil {
 		return errorQueryToServer(err)
 	}
-	fmt.Printf("handler: %v\n", features)
 
-	return writeJSON(w, ContentTypeJSON, features)
+	return writeJSON(w, ContentTypeJSON, *features)
 }
 
 func handleTile(w http.ResponseWriter, r *http.Request) *serverError {
@@ -73,7 +72,7 @@ func handleTile(w http.ResponseWriter, r *http.Request) *serverError {
 		return errorQueryToServer(err)
 	}
 
-	return writeJSON(w, ContentTypeJSON, features)
+	return writeJSON(w, ContentTypeJSON, *features)
 }
 
 func handleID(w http.ResponseWriter, r *http.Request) *serverError {
@@ -86,7 +85,7 @@ func handleID(w http.ResponseWriter, r *http.Request) *serverError {
 		return errorQueryToServer(err)
 	}
 
-	return writeJSON(w, ContentTypeJSON, features)
+	return writeJSON(w, ContentTypeJSON, *features)
 }
 
 func errorQueryToServer(err error) *serverError {
