@@ -11,13 +11,32 @@ import (
 	"github.com/go-chi/cors"
 )
 
+const (
+	ContentTypeJSON    = "application/json"
+	ContentTypeGeoJSON = "application/geo+json"
+)
+
+const (
+	ErrMsgEncoding = "error encoding response"
+)
+
 type serverError struct {
 	Error   error
 	Message string
 	Code    int
 }
 
-type serverHandler func(http.ResponseWriter, *http.Request) *serverError
+func serverErrorInternal(err error, msg string) *serverError {
+	return &serverError{err, msg, http.StatusInternalServerError}
+}
+
+func serverErrorNotFound(err error, msg string) *serverError {
+	return &serverError{err, msg, http.StatusNotFound}
+}
+
+func serverErrorBadRequest(err error, msg string) *serverError {
+	return &serverError{err, msg, http.StatusBadRequest}
+}
 
 func Create() *http.Server {
 
@@ -66,6 +85,8 @@ func Create() *http.Server {
 	return server
 }
 
+type serverHandler func(http.ResponseWriter, *http.Request) *serverError
+
 func (sh serverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	handlerDone := make(chan struct{})
@@ -91,13 +112,9 @@ func (sh serverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if e != nil {
 		// log request processing error
-		http.Error(w, e.Message, e.Code)
+		writeError(w, e.Code, e.Message)
 	}
 	close(handlerDone)
-}
-
-func serverErrorInternal(err error, msg string) *serverError {
-	return &serverError{err, msg, http.StatusInternalServerError}
 }
 
 func FatalAfter(delaySec int, msg string) chan struct{} {

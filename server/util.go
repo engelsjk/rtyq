@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/CrunchyData/pg_featureserv/api"
 	"github.com/go-chi/chi"
 )
+
+/////////////////////////////////////////////////////////////
 
 func getRequestVar(varname string, r *http.Request) string {
 	return chi.URLParam(r, varname)
@@ -16,7 +17,7 @@ func getRequestVar(varname string, r *http.Request) string {
 func writeJSON(w http.ResponseWriter, contype string, content interface{}) *serverError {
 	encodedContent, err := json.Marshal(content)
 	if err != nil {
-		return serverErrorInternal(err, api.ErrMsgEncoding)
+		return serverErrorInternal(err, ErrMsgEncoding)
 	}
 	writeResponse(w, contype, encodedContent)
 	return nil
@@ -28,15 +29,15 @@ func writeResponse(w http.ResponseWriter, contype string, encodedContent []byte)
 	w.Write(encodedContent)
 }
 
-func writeError(w http.ResponseWriter, code string, msg string, status int) {
+func writeError(w http.ResponseWriter, status int, msg string) {
 
 	w.WriteHeader(status)
 
 	result, err := json.Marshal(struct {
-		Code        string `json:"code"`
+		Status      int    `json:"status"`
 		Description string `json:"description"`
 	}{
-		Code:        code,
+		Status:      status,
 		Description: msg,
 	})
 

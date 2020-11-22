@@ -6,15 +6,12 @@ import (
 
 	"github.com/engelsjk/rtyq/conf"
 	"github.com/karrick/godirwalk"
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geojson"
+	"github.com/paulmach/orb/maptile"
 	"github.com/schollz/progressbar/v3"
 	"github.com/tidwall/buntdb"
 )
-
-var Layers map[string]*Layer
-
-func init() {
-	Layers = make(map[string]*Layer)
-}
 
 type Layer struct {
 	Name       string
@@ -23,6 +20,7 @@ type Layer struct {
 	DataID     string
 	DBFilepath string
 	DBIndex    string
+	ZoomLimit  int
 	db         *buntdb.DB
 }
 
@@ -34,8 +32,11 @@ func NewLayer(layer conf.Layer) *Layer {
 		DataID:     layer.Data.ID,
 		DBFilepath: layer.Database.Filepath,
 		DBIndex:    layer.Database.Index,
+		ZoomLimit:  layer.ZoomLimit,
 	}
 }
+
+//////////////////////////////////////////////////////////
 
 func (l *Layer) CheckData() error {
 
@@ -90,10 +91,16 @@ func (l *Layer) CheckData() error {
 	return nil
 }
 
+//////////////////////////////////////////////////////////
+
 func (l *Layer) CreateDatabase() error {
 	if fileExists(l.DBFilepath) {
 		return fmt.Errorf("database file already exists")
 	}
+
+	// log
+	fmt.Printf("creating db %s...\n", filename(l.DBFilepath))
+
 	_, err := buntdb.Open(l.DBFilepath)
 	if err != nil {
 		return err
@@ -106,6 +113,10 @@ func (l *Layer) LoadDatabase() error {
 		return fmt.Errorf("database file does not exists")
 	}
 	l.db = nil
+
+	// log
+	fmt.Printf("loading db %s...\n", filename(l.DBFilepath))
+
 	bdb, err := buntdb.Open(l.DBFilepath)
 	if err != nil {
 		return err
@@ -129,8 +140,8 @@ func (l *Layer) AddDataToDatabase() error {
 		return fmt.Errorf("database not loaded")
 	}
 
-	fmt.Printf("layer (%s)\n", l.Name)
-	fmt.Printf("uploading data to database...\n")
+	// log
+	fmt.Printf("uploading data to db %s...\n", filename(l.DBFilepath))
 
 	numLoadErrors := 0
 	numUpdateErrors := 0
@@ -172,10 +183,67 @@ func (l *Layer) AddDataToDatabase() error {
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
 		fmt.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
 	}
-	fmt.Printf("num files loaded to db: %d\n", numFiles)
+	fmt.Printf("%d files loaded to db: %d\n", numFiles, filename(l.DBFilepath))
 	return nil
 }
 
-func AddToLayers(layer *Layer) {
-	Layers[layer.Name] = layer
+func (l *Layer) IndexDatabase() error {
+	// log
+	fmt.Printf("indexing db %s...\n", filename(l.DBFilepath))
+	return l.db.CreateSpatialIndex(l.DBIndex, dbPattern(l.DBIndex), buntdb.IndexRect)
+}
+
+func (l *Layer) intersects(o interface{}) ([]*geojson.Feature, error) {
+
+	var features []*geojson.Feature
+
+	if err := l.db.View(func(tx *buntdb.Tx) error {
+		tx.Intersects(l.DBIndex, bounds(o), func(k, v string) bool {
+			f := resolve(l, k, o)
+			if f != nil {
+				features = append(features, f)
+			}
+			return true
+		})
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return features, nil
+}
+
+func AddLayerToQueryHandler(layer *Layer) {
+	QueryHandler.layers[layer.Name] = layer
+}
+
+func resolve(layer *Layer, k string, o interface{}) *geojson.Feature {
+
+	index, id := dbParseKey(k)
+
+	if index != layer.DBIndex {
+		return nil
+	}
+
+	fp := filePath(layer.DataDir, id, layer.DataExt)
+
+	f, _, err := feature(fp)
+	if err != nil {
+		return nil
+	}
+
+	switch v := o.(type) {
+	case orb.Point:
+		if pointInFeature(f.Geometry, v) {
+			return f
+		}
+	case maptile.Tile:
+		if tileOverlapsGeometry(f.Geometry, v) {
+			return f
+		}
+	default:
+		return nil
+	}
+
+	return nil
 }

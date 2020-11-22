@@ -59,7 +59,6 @@ type Layer struct {
 	Name      string
 	Data      LayerData
 	Database  LayerDatabase
-	Endpoint  string
 	ZoomLimit int
 }
 

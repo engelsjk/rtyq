@@ -1,12 +1,25 @@
 {
     "server" : {
-        "port": 5501,
+        "port": 5500,
         "logs": true,
         "debug": false,
         "throttle": 1001,
         "readtimeoutsec": 21
     },
     "layers": [
+        {
+            "name": "states",
+            "data": {
+                "dir": "/home/engelsjk/Projects/Boundaries/2019/states/items",
+                "ext": ".geojson",
+                "id": "GEOID"
+            },
+            "database": {
+                "filepath": "states.db",
+                "index": "state"
+            },
+            "zoomlimit": 6
+        },
         {
             "name": "counties",
             "data": {
@@ -16,10 +29,35 @@
             },
             "database": {
                 "filepath": "counties.db",
-                "index": "counties"
+                "index": "county"
             },
-            "endpoint": "counties",
             "zoomlimit": 6
+        },
+        {
+            "name": "zcta5",
+            "data": {
+                "dir": "/home/engelsjk/Projects/Boundaries/2019/zcta5/items",
+                "ext": ".geojson",
+                "id": "GEOID10"
+            },
+            "database": {
+                "filepath": "zcta5.db",
+                "index": "zcta"
+            },
+            "zoomlimit": 12
+        },
+        {
+            "name": "tracts",
+            "data": {
+                "dir": "/home/engelsjk/Projects/Boundaries/2019/censustracts/items",
+                "ext": ".geojson",
+                "id": "GEOID"
+            },
+            "database": {
+                "filepath": "tracts.db",
+                "index": "tract"
+            },
+            "zoomlimit": 12
         }
     ]
 }
