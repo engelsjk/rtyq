@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	jsoniter "github.com/json-iterator/go"
 )
 
 /////////////////////////////////////////////////////////////
@@ -15,6 +16,7 @@ func getRequestVar(varname string, r *http.Request) string {
 }
 
 func writeJSON(w http.ResponseWriter, contype string, content interface{}) *serverError {
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	encodedContent, err := json.Marshal(content)
 	if err != nil {
 		return serverErrorInternal(err, ErrMsgEncoding)

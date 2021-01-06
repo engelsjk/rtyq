@@ -94,7 +94,7 @@ func errorQueryToServer(err error) *serverError {
 		return serverErrorNotFound(err, err.Error())
 	case data.ErrQueryInvalidPoint:
 		return serverErrorBadRequest(err, err.Error())
-	case data.ErrQueryInvalidPoint:
+	case data.ErrQueryInvalidTile:
 		return serverErrorBadRequest(err, err.Error())
 	case data.ErrQueryExceededTileZoomLimit:
 		return serverErrorBadRequest(err, err.Error())

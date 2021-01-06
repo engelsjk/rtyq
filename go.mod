@@ -12,6 +12,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/render v1.0.1
+	github.com/json-iterator/go v1.1.10
 	github.com/karrick/godirwalk v1.16.1
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
@@ -31,6 +32,8 @@ require (
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tidwall/btree v0.3.0 // indirect
 	github.com/tidwall/buntdb v1.1.4
+	github.com/tidwall/gjson v1.6.3 // indirect
+	github.com/tidwall/match v1.0.2 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
