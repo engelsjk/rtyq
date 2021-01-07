@@ -1,7 +1,5 @@
 package conf
 
-var versionNumber string
-
 type AppConfiguration struct {
 	Name    string
 	Help    string
@@ -11,5 +9,5 @@ type AppConfiguration struct {
 var AppConfig = AppConfiguration{
 	Name:    "rtyq",
 	Help:    "generate and query an in-memory spatial rtree",
-	Version: versionNumber,
+	Version: "0.0.1",
 }

@@ -131,11 +131,6 @@ func query() {
 
 func load() {
 
-	// create layer map
-	// load databases for each layer map
-	// create spatial index for each database
-	// pass map to start
-
 	for _, confLayer := range conf.Configuration.Layers {
 
 		layer := data.NewLayer(confLayer)
