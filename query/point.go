@@ -42,6 +42,10 @@ func ParsePoint(pt string) (orb.Point, error) {
 	cleanLatLon := strings.ReplaceAll(pt, " ", "")
 	splitLatLon := strings.Split(cleanLatLon, ",")
 
+	if len(splitLatLon) != 2 {
+		return orb.Point{}, ErrInvalidPoint
+	}
+
 	lon, err := strconv.ParseFloat(splitLatLon[0], 64)
 	if err != nil {
 		return orb.Point{}, ErrInvalidPoint
