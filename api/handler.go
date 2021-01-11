@@ -105,15 +105,18 @@ func responseError(w http.ResponseWriter, err error) {
 	var response []byte
 
 	switch err {
+	case query.ErrInvalidPoint:
+		statusCode = http.StatusBadRequest
+		response = []byte(err.Error())
 	case query.ErrInvalidTile:
 		statusCode = http.StatusBadRequest
-		response = []byte(ErrInvalidTile.Error())
+		response = []byte(err.Error())
 	case query.ErrTileZoomLimitExceeded:
 		statusCode = http.StatusBadRequest
-		response = []byte(ErrTileZoomLimitExceeded.Error())
+		response = []byte(err.Error())
 	case rtyq.ErrDatabaseFailedToGetResults:
 		statusCode = http.StatusInternalServerError
-		response = []byte(ErrUnableToGetDataFromDB.Error())
+		response = []byte(err.Error())
 	default:
 		statusCode = http.StatusInternalServerError
 		response = []byte(ErrUnknown.Error())
