@@ -17,6 +17,13 @@ func getRequestVar(varname string, r *http.Request) string {
 
 func writeJSON(w http.ResponseWriter, contype string, content interface{}) *serverError {
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	
+	// if content == nil {
+	// 	content = make([]string, 0)
+	// }
+
+	fmt.Printf("content: %+v", content)
+
 	encodedContent, err := json.Marshal(content)
 	if err != nil {
 		return serverErrorInternal(err, ErrMsgEncoding)

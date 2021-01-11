@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrQueryNoLayer               error = fmt.Errorf("invalid layer")
+	ErrQueryNoLayer               error = fmt.Errorf("layer not found")
 	ErrQueryInvalidPoint          error = fmt.Errorf("invalid point")
 	ErrQueryInvalidTile           error = fmt.Errorf("invalid tile")
 	ErrQueryExceededTileZoomLimit error = fmt.Errorf("exceeded tile zoom limit")
@@ -30,9 +30,14 @@ func init() {
 	}
 }
 
-func (q Query) Point(layer string, pt string) (*[]geojson.Feature, error) {
+func (q Query) HasLayer(layer string) bool {
+	_, ok := q.layers[layer]
+	return ok
+}
 
-	if _, ok := q.layers[layer]; !ok {
+func (q Query) Point(layer, pt string) (*[]geojson.Feature, error) {
+
+	if !q.HasLayer(layer) {
 		return nil, ErrQueryNoLayer
 	}
 
@@ -49,9 +54,14 @@ func (q Query) Point(layer string, pt string) (*[]geojson.Feature, error) {
 	return &features, nil
 }
 
-func (q Query) Tile(layer string, x, y, z string) (*[]geojson.Feature, error) {
+func (q Query) BBox(layer, bbox string) (*[]geojson.Feature, error) {
 
-	if _, ok := q.layers[layer]; !ok {
+	return nil, nil
+}
+
+func (q Query) Tile(layer, x, y, z string) (*[]geojson.Feature, error) {
+
+	if !q.HasLayer(layer) {
 		return nil, ErrQueryNoLayer
 	}
 
@@ -72,9 +82,9 @@ func (q Query) Tile(layer string, x, y, z string) (*[]geojson.Feature, error) {
 	return &features, nil
 }
 
-func (q Query) ID(layer string, id string) (*[]geojson.Feature, error) {
+func (q Query) ID(layer, id string) (*[]geojson.Feature, error) {
 
-	if _, ok := q.layers[layer]; !ok {
+	if !q.HasLayer(layer) {
 		return nil, ErrQueryNoLayer
 	}
 

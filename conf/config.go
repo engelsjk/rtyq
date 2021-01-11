@@ -75,6 +75,8 @@ type LayerDatabase struct {
 
 func InitConfig(configFilename string) {
 
+	fmt.Println(configFilename)
+	
 	setDefaultConfig()
 
 	isExplicitConfigFile := configFilename != ""
@@ -104,6 +106,6 @@ func InitConfig(configFilename string) {
 	zap.L().Info("using config file", zap.String("filename", confFile))
 	err = viper.Unmarshal(&Configuration)
 	if err != nil {
-		// log error
+		fmt.Println(err.Error())
 	}
 }

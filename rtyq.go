@@ -18,30 +18,36 @@ import (
 )
 
 var app *kingpin.Application
+
 var checkCmd *kingpin.CmdClause
+var checkFlagConfigFilename *string
+
 var createCmd *kingpin.CmdClause
+var createFlagConfigFilename *string
+
 var startCmd *kingpin.CmdClause
+var startFlagConfigFilename *string
+var startFlagDebugOn *bool
+
 var queryCmd *kingpin.CmdClause
 
 var logger *zap.Logger
 
-var flagConfigFilename string
-var flagDebugOn bool
-
 func initCommandOptions() {
 
 	checkCmd = app.Command("check", "check data path")
-	flagConfigFilename = *checkCmd.Flag("config", "config file").Short('c').String()
+	checkFlagConfigFilename = checkCmd.Flag("config", "config file").Short('c').String()
 
 	createCmd = app.Command("create", "create an rtree db from data")
-	flagConfigFilename = *createCmd.Flag("config", "config file").Short('c').String()
+	createFlagConfigFilename = createCmd.Flag("config", "config file").Short('c').String()
 
 	startCmd = app.Command("start", "start api service")
-	flagConfigFilename = *startCmd.Flag("config", "config file").Short('c').String()
-	flagDebugOn = *startCmd.Flag("debug", "enable debug").Short('d').Default("false").Bool()
+	startFlagConfigFilename = startCmd.Flag("config", "config file").Short('c').String()
+	startFlagDebugOn = startCmd.Flag("debug", "enable debug").Short('d').Default("false").Bool()
 
 	queryCmd = app.Command("query", "query db")
 
+	fmt.Println(*startFlagConfigFilename)
 }
 
 func main() {
@@ -53,16 +59,18 @@ func main() {
 
 	initCommandOptions()
 
-	conf.InitConfig("config.json")
-
 	// if flagDebugOn || conf.Configuration.Server.Debug {}
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case checkCmd.FullCommand():
+		conf.InitConfig(*checkFlagConfigFilename)
 		check()
 	case createCmd.FullCommand():
+		conf.InitConfig(*createFlagConfigFilename)
 		create()
 	case startCmd.FullCommand():
+		// what is happening here? why is the config filename flag empty?
+		conf.InitConfig(*startFlagConfigFilename)
 		start()
 	case queryCmd.FullCommand():
 		query()
@@ -130,6 +138,8 @@ func query() {
 }
 
 func load() {
+
+	fmt.Printf("%+v", conf.Configuration)
 
 	for _, confLayer := range conf.Configuration.Layers {
 

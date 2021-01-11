@@ -11,6 +11,7 @@ import (
 const (
 	routeVarLayer = "layer"
 	routeVarPoint = "point"
+	routeVarBBox  = "bbox"
 	routeVarTileX = "x"
 	routeVarTileY = "y"
 	routeVarTileZ = "z"
@@ -24,8 +25,8 @@ func initRouter() *chi.Mux {
 
 func addRoutes(router *chi.Mux) {
 	addRoute(router, "/", handleRoot)
-	addRoute(router, "/{layer}", handleLayer)
 	addRoute(router, "/{layer}/point/{point}", handlePoint)
+	addRoute(router, "/{layer}/bbox/{bbox}", handleBBox)
 	addRoute(router, "/{layer}/tile/{z}/{x}/{y}", handleTile)
 	addRoute(router, "/{layer}/id/{id}", handleID)
 }
@@ -41,8 +42,13 @@ func handleRoot(w http.ResponseWriter, r *http.Request) *serverError {
 }
 
 func handleLayer(w http.ResponseWriter, r *http.Request) *serverError {
+
 	layer := getRequestVar(routeVarLayer, r)
-	_ = layer
+
+	if !data.QueryHandler.HasLayer(layer) {
+		return errorQueryToServer(data.ErrQueryNoLayer)
+	}
+
 	return nil
 	// return writeJSON(w, ContentTypeJSON, fs)
 }
@@ -53,6 +59,19 @@ func handlePoint(w http.ResponseWriter, r *http.Request) *serverError {
 	point := getRequestVar(routeVarPoint, r)
 
 	features, err := data.QueryHandler.Point(layer, point)
+	if err != nil {
+		return errorQueryToServer(err)
+	}
+
+	return writeJSON(w, ContentTypeJSON, *features)
+}
+
+func handleBBox(w http.ResponseWriter, r *http.Request) *serverError {
+
+	layer := getRequestVar(routeVarLayer, r)
+	bbox := getRequestVar(routeVarBBox, r)
+
+	features, err := data.QueryHandler.BBox(layer, bbox)
 	if err != nil {
 		return errorQueryToServer(err)
 	}
