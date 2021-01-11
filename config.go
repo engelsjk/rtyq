@@ -129,9 +129,10 @@ func ValidateConfigLayerData(layer ConfigLayer) error {
 	if layer.Data.Path == "" {
 		return ErrLayerNoDataPath
 	}
-	if layer.Data.Extension == "" {
-		return ErrLayerNoDataExtension
-	}
+	// todo: this validation to be removed
+	// if layer.Data.Extension == "" {
+	// 	return ErrLayerNoDataExtension
+	// }
 	if layer.Data.ID == "" {
 		return ErrLayerNoDataID
 	}
