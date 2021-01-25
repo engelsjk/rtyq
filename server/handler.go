@@ -9,13 +9,18 @@ import (
 )
 
 const (
+	routeVarWildcard = "*"
 	routeVarLayer = "layer"
 	routeVarPoint = "point"
 	routeVarBBox  = "bbox"
+	routeVarID    = "id"
 	routeVarTileX = "x"
 	routeVarTileY = "y"
 	routeVarTileZ = "z"
-	routeVarID    = "id"
+)
+
+var (
+	ErrNotFound error = fmt.Errorf("not found")
 )
 
 func initRouter() *chi.Mux {
@@ -25,10 +30,28 @@ func initRouter() *chi.Mux {
 
 func addRoutes(router *chi.Mux) {
 	addRoute(router, "/", handleRoot)
-	addRoute(router, "/{layer}/point/{point}", handlePoint)
-	addRoute(router, "/{layer}/bbox/{bbox}", handleBBox)
-	addRoute(router, "/{layer}/tile/{z}/{x}/{y}", handleTile)
-	addRoute(router, "/{layer}/id/{id}", handleID)
+
+	addRoute(router, "/*", handleDefault)
+	
+	addRoute(router, "/layers", handleLayer)
+	addRoute(router, "/layers/{layer}", handleLayer)
+	addRoute(router, "/layers/{layer}/*", handleLayer)
+	
+	addRoute(router, "/layers/{layer}/point", handlePoint)
+	addRoute(router, "/layers/{layer}/point/{point}", handlePoint)
+	
+	addRoute(router, "/layers/{layer}/bbox", handleBBox)
+	addRoute(router, "/layers/{layer}/bbox/{bbox}", handleBBox)
+	
+	addRoute(router, "/layers/{layer}/tile", handleTile)
+	addRoute(router, "/layers/{layer}/tile/{z}", handleTile)
+	addRoute(router, "/layers/{layer}/tile/{z}/{x}", handleTile)
+	addRoute(router, "/layers/{layer}/tile/{z}/{x}/{y}", handleTile)
+
+	addRoute(router, "/layers/{layer}/id", handleID)
+	addRoute(router, "/layers/{layer}/id/{id}", handleID)
+
+	addRoute(router, "/config", handleConfig)
 }
 
 func addRoute(router *chi.Mux, path string, handler func(http.ResponseWriter, *http.Request) *serverError) {
@@ -38,19 +61,39 @@ func addRoute(router *chi.Mux, path string, handler func(http.ResponseWriter, *h
 ////////////////////////////////////////////////////////////////////////
 
 func handleRoot(w http.ResponseWriter, r *http.Request) *serverError {
-	return nil
+	type Home struct {
+		Message string `json:"message"`
+		Config string `json:"config"`
+	}
+	home := Home{
+		Message: "shape layers api v0.1",
+		Config: "/config",
+	}
+	return writeJSON(w, ContentTypeJSON, home)
+}
+
+func handleDefault(w http.ResponseWriter, r *http.Request) *serverError {
+	return serverErrorNotFound(ErrNotFound, ErrNotFound.Error())
 }
 
 func handleLayer(w http.ResponseWriter, r *http.Request) *serverError {
 
 	layer := getRequestVar(routeVarLayer, r)
+	wildcard := getRequestVar(routeVarWildcard, r)
 
-	if !data.QueryHandler.HasLayer(layer) {
-		return errorQueryToServer(data.ErrQueryNoLayer)
+	if layer == "" {
+		return errorQueryToServer(data.ErrQueryMissingLayer)
 	}
 
-	return nil
-	// return writeJSON(w, ContentTypeJSON, fs)
+	if !data.QueryHandler.HasLayer(layer) {
+		return errorQueryToServer(data.ErrQueryInvalidLayer)
+	}
+
+	if wildcard == "" {
+		return errorQueryToServer(data.ErrQueryMissingQuery)
+	}
+
+	return errorQueryToServer(data.ErrQueryInvalidQuery)
 }
 
 func handlePoint(w http.ResponseWriter, r *http.Request) *serverError {
@@ -63,7 +106,7 @@ func handlePoint(w http.ResponseWriter, r *http.Request) *serverError {
 		return errorQueryToServer(err)
 	}
 
-	return writeJSON(w, ContentTypeJSON, *features)
+	return writeJSON(w, ContentTypeJSON, features)
 }
 
 func handleBBox(w http.ResponseWriter, r *http.Request) *serverError {
@@ -76,7 +119,7 @@ func handleBBox(w http.ResponseWriter, r *http.Request) *serverError {
 		return errorQueryToServer(err)
 	}
 
-	return writeJSON(w, ContentTypeJSON, *features)
+	return writeJSON(w, ContentTypeJSON, features)
 }
 
 func handleTile(w http.ResponseWriter, r *http.Request) *serverError {
@@ -91,7 +134,7 @@ func handleTile(w http.ResponseWriter, r *http.Request) *serverError {
 		return errorQueryToServer(err)
 	}
 
-	return writeJSON(w, ContentTypeJSON, *features)
+	return writeJSON(w, ContentTypeJSON, features)
 }
 
 func handleID(w http.ResponseWriter, r *http.Request) *serverError {
@@ -104,16 +147,57 @@ func handleID(w http.ResponseWriter, r *http.Request) *serverError {
 		return errorQueryToServer(err)
 	}
 
-	return writeJSON(w, ContentTypeJSON, *features)
+	return writeJSON(w, ContentTypeJSON, features)
 }
+
+func handleConfig(w http.ResponseWriter, r *http.Request) *serverError {
+	
+	type Config struct {
+		Layers []string `json:"layers"`
+		Queries []string `json:"queries"`
+	}
+	
+	layers := data.QueryHandler.Layers()
+	
+	queries := []string{
+		"/layers/{layer}/point/{point}",
+		"/layers/{layer}/bbox/{bbox}",
+		"/layers/{layer}/tile/{z}/{x}/{y}",
+		"/layers/{layer}/id/{id}",
+	}
+
+	config := Config{Layers: layers, Queries: queries}
+
+	return writeJSON(w, ContentTypeJSON, config)
+}
+
+/////////////////////////////////////////////////////
 
 func errorQueryToServer(err error) *serverError {
 	switch err {
-	case data.ErrQueryNoLayer:
+	case data.ErrQueryMissingLayer:
 		return serverErrorNotFound(err, err.Error())
+	case data.ErrQueryInvalidLayer:
+		return serverErrorBadRequest(err, err.Error())
+	case data.ErrQueryMissingQuery:
+		return serverErrorNotFound(err, err.Error())
+	case data.ErrQueryInvalidQuery:
+		return serverErrorBadRequest(err, err.Error())
+	case data.ErrQueryMissingID:
+		return serverErrorBadRequest(err, err.Error())
+	case data.ErrQueryInvalidID:
+		return serverErrorBadRequest(err, err.Error())
+	case data.ErrQueryMissingPoint:
+		return serverErrorBadRequest(err, err.Error())
 	case data.ErrQueryInvalidPoint:
 		return serverErrorBadRequest(err, err.Error())
+	case data.ErrQueryMissingTile:
+		return serverErrorBadRequest(err, err.Error())
 	case data.ErrQueryInvalidTile:
+		return serverErrorBadRequest(err, err.Error())
+	case data.ErrQueryMissingBBox:
+		return serverErrorBadRequest(err, err.Error())
+	case data.ErrQueryInvalidBBox:
 		return serverErrorBadRequest(err, err.Error())
 	case data.ErrQueryExceededTileZoomLimit:
 		return serverErrorBadRequest(err, err.Error())

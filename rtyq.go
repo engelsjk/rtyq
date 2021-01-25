@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,7 +11,6 @@ import (
 	"github.com/engelsjk/rtyq/conf"
 	"github.com/engelsjk/rtyq/data"
 	"github.com/engelsjk/rtyq/server"
-	"github.com/paulmach/orb"
 	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -29,8 +27,6 @@ var startCmd *kingpin.CmdClause
 var startFlagConfigFilename *string
 var startFlagDebugOn *bool
 
-var queryCmd *kingpin.CmdClause
-
 var logger *zap.Logger
 
 func initCommandOptions() {
@@ -44,10 +40,6 @@ func initCommandOptions() {
 	startCmd = app.Command("start", "start api service")
 	startFlagConfigFilename = startCmd.Flag("config", "config file").Short('c').String()
 	startFlagDebugOn = startCmd.Flag("debug", "enable debug").Short('d').Default("false").Bool()
-
-	queryCmd = app.Command("query", "query db")
-
-	fmt.Println(*startFlagConfigFilename)
 }
 
 func main() {
@@ -72,8 +64,6 @@ func main() {
 		// what is happening here? why is the config filename flag empty?
 		conf.InitConfig(*startFlagConfigFilename)
 		start()
-	case queryCmd.FullCommand():
-		query()
 	}
 }
 
@@ -120,45 +110,20 @@ func start() {
 	serve()
 }
 
-func query() {
-
-	load()
-
-	_ = orb.Point{-86.46283, 32.47045}
-
-	if r, err := data.QueryHandler.Tile("counties", "471", "785", "11"); err != nil {
-		panic(err)
-	} else {
-		b, err := json.Marshal(r)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("%s\n", b)
-	}
-}
-
 func load() {
-
-	fmt.Printf("%+v", conf.Configuration)
-
 	for _, confLayer := range conf.Configuration.Layers {
-
 		layer := data.NewLayer(confLayer)
-
 		// todo: check if data dir exists
-
 		if err := layer.LoadDatabase(); err != nil {
 			// log error
 			fmt.Println(err)
 			continue
 		}
-
 		if err := layer.IndexDatabase(); err != nil {
 			// log error
 			fmt.Println(err)
 			continue
 		}
-
 		data.AddLayerToQueryHandler(layer)
 	}
 }
