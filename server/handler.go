@@ -63,7 +63,7 @@ func addRoute(router *chi.Mux, path string, handler func(http.ResponseWriter, *h
 
 func handleRoot(w http.ResponseWriter, r *http.Request) *serverError {
 	type Home struct {
-		API string `json:"message"`
+		API string `json:"api"`
 		Config string `json:"config"`
 	}
 	
