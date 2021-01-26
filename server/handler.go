@@ -11,13 +11,13 @@ import (
 
 const (
 	routeVarWildcard = "*"
-	routeVarLayer = "layer"
-	routeVarPoint = "point"
-	routeVarBBox  = "bbox"
-	routeVarID    = "id"
-	routeVarTileX = "x"
-	routeVarTileY = "y"
-	routeVarTileZ = "z"
+	routeVarLayer    = "layer"
+	routeVarPoint    = "point"
+	routeVarBBox     = "bbox"
+	routeVarID       = "id"
+	routeVarTileX    = "x"
+	routeVarTileY    = "y"
+	routeVarTileZ    = "z"
 )
 
 var (
@@ -33,24 +33,23 @@ func addRoutes(router *chi.Mux) {
 	addRoute(router, "/", handleRoot)
 
 	addRoute(router, "/*", handleDefault)
-	
-	addRoute(router, "/layers", handleLayer)
-	addRoute(router, "/layers/{layer}", handleLayer)
-	addRoute(router, "/layers/{layer}/*", handleLayer)
-	
-	addRoute(router, "/layers/{layer}/point", handlePoint)
-	addRoute(router, "/layers/{layer}/point/{point}", handlePoint)
-	
-	addRoute(router, "/layers/{layer}/bbox", handleBBox)
-	addRoute(router, "/layers/{layer}/bbox/{bbox}", handleBBox)
-	
-	addRoute(router, "/layers/{layer}/tile", handleTile)
-	addRoute(router, "/layers/{layer}/tile/{z}", handleTile)
-	addRoute(router, "/layers/{layer}/tile/{z}/{x}", handleTile)
-	addRoute(router, "/layers/{layer}/tile/{z}/{x}/{y}", handleTile)
 
-	addRoute(router, "/layers/{layer}/id", handleID)
-	addRoute(router, "/layers/{layer}/id/{id}", handleID)
+	addRoute(router, "/{layer}", handleLayer)
+	addRoute(router, "/{layer}/*", handleLayer)
+
+	addRoute(router, "/{layer}/point", handlePoint)
+	addRoute(router, "/{layer}/point/{point}", handlePoint)
+
+	addRoute(router, "/{layer}/bbox", handleBBox)
+	addRoute(router, "/{layer}/bbox/{bbox}", handleBBox)
+
+	addRoute(router, "/{layer}/tile", handleTile)
+	addRoute(router, "/{layer}/tile/{z}", handleTile)
+	addRoute(router, "/{layer}/tile/{z}/{x}", handleTile)
+	addRoute(router, "/{layer}/tile/{z}/{x}/{y}", handleTile)
+
+	addRoute(router, "/{layer}/id", handleID)
+	addRoute(router, "/{layer}/id/{id}", handleID)
 
 	addRoute(router, "/config", handleConfig)
 }
@@ -63,14 +62,14 @@ func addRoute(router *chi.Mux, path string, handler func(http.ResponseWriter, *h
 
 func handleRoot(w http.ResponseWriter, r *http.Request) *serverError {
 	type Home struct {
-		API string `json:"api"`
+		API    string `json:"api"`
 		Config string `json:"config"`
 	}
-	
+
 	api := fmt.Sprintf("%s %s", conf.AppConfig.Name, conf.AppConfig.Version)
-	
+
 	home := Home{
-		API: api,
+		API:    api,
 		Config: "/config",
 	}
 	return writeJSON(w, ContentTypeJSON, home)
@@ -155,19 +154,18 @@ func handleID(w http.ResponseWriter, r *http.Request) *serverError {
 }
 
 func handleConfig(w http.ResponseWriter, r *http.Request) *serverError {
-	
+
 	type Config struct {
-		Layers []string `json:"layers"`
+		Layers  []string `json:"layers"`
 		Queries []string `json:"queries"`
 	}
-	
+
 	layers := data.QueryHandler.Layers()
-	
+
 	queries := []string{
-		"/layers/{layer}/point/{point}",
-		"/layers/{layer}/bbox/{bbox}",
-		"/layers/{layer}/tile/{z}/{x}/{y}",
-		"/layers/{layer}/id/{id}",
+		"/{layer}/point/{point}",
+		"/{layer}/tile/{z}/{x}/{y}",
+		"/{layer}/id/{id}",
 	}
 
 	config := Config{Layers: layers, Queries: queries}
