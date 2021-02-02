@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	ErrQueryMissingLayer               error = fmt.Errorf("missing layer")
-	ErrQueryInvalidLayer               error = fmt.Errorf("invalid layer")
-	ErrQueryMissingQuery               error = fmt.Errorf("missing query")
-	ErrQueryInvalidQuery               error = fmt.Errorf("invalid query")
+	ErrQueryMissingLayer          error = fmt.Errorf("missing layer")
+	ErrQueryInvalidLayer          error = fmt.Errorf("invalid layer")
+	ErrQueryMissingQuery          error = fmt.Errorf("missing query")
+	ErrQueryInvalidQuery          error = fmt.Errorf("invalid query")
 	ErrQueryMissingID             error = fmt.Errorf("missing id")
 	ErrQueryInvalidID             error = fmt.Errorf("invalid id")
 	ErrQueryMissingPoint          error = fmt.Errorf("missing point")
@@ -63,7 +63,7 @@ func (q Query) Point(layer, pt string) (*[]geojson.Feature, error) {
 	}
 
 	if pt == "" {
-		return &[]geojson.Feature{}, ErrQueryMissingPoint	
+		return &[]geojson.Feature{}, ErrQueryMissingPoint
 	}
 
 	point := parsePoint(pt)
@@ -94,7 +94,7 @@ func (q Query) BBox(layer, bb string) (*[]geojson.Feature, error) {
 	}
 
 	if bb == "" {
-		return &[]geojson.Feature{}, ErrQueryMissingBBox	
+		return &[]geojson.Feature{}, ErrQueryMissingBBox
 	}
 
 	bbox := parseBBox(bb)
@@ -120,7 +120,7 @@ func (q Query) Tile(layer, x, y, z string) (*[]geojson.Feature, error) {
 	}
 
 	if x == "" || y == "" || z == "" {
-		return &[]geojson.Feature{}, ErrQueryMissingTile	
+		return &[]geojson.Feature{}, ErrQueryMissingTile
 	}
 
 	tile := parseTile(x, y, z)

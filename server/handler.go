@@ -12,6 +12,7 @@ import (
 const (
 	routeVarWildcard = "*"
 	routeVarLayer    = "layer"
+	routeVarSubLayer = "sublayer"
 	routeVarPoint    = "point"
 	routeVarBBox     = "bbox"
 	routeVarID       = "id"
@@ -35,21 +36,32 @@ func addRoutes(router *chi.Mux) {
 	addRoute(router, "/*", handleDefault)
 
 	addRoute(router, "/{layer}", handleLayer)
-	addRoute(router, "/{layer}/*", handleLayer)
+	addRoute(router, "/{layer}/{sublayer}", handleLayer)
+	addRoute(router, "/{layer}/{sublayer}/*", handleLayer)
 
 	addRoute(router, "/{layer}/point", handlePoint)
+	addRoute(router, "/{layer}/{sublayer}/point", handlePoint)
 	addRoute(router, "/{layer}/point/{point}", handlePoint)
+	addRoute(router, "/{layer}/{sublayer}/point/{point}", handlePoint)
 
 	addRoute(router, "/{layer}/bbox", handleBBox)
+	addRoute(router, "/{layer}/{sublayer}/bbox", handleBBox)
 	addRoute(router, "/{layer}/bbox/{bbox}", handleBBox)
+	addRoute(router, "/{layer}/{sublayer}/bbox/{bbox}", handleBBox)
 
 	addRoute(router, "/{layer}/tile", handleTile)
+	addRoute(router, "/{layer}/{sublayer}/tile", handleTile)
 	addRoute(router, "/{layer}/tile/{z}", handleTile)
+	addRoute(router, "/{layer}/{sublayer}/tile/{z}", handleTile)
 	addRoute(router, "/{layer}/tile/{z}/{x}", handleTile)
+	addRoute(router, "/{layer}/{sublayer}/tile/{z}/{x}", handleTile)
 	addRoute(router, "/{layer}/tile/{z}/{x}/{y}", handleTile)
+	addRoute(router, "/{layer}/{sublayer}/tile/{z}/{x}/{y}", handleTile)
 
 	addRoute(router, "/{layer}/id", handleID)
+	addRoute(router, "/{layer}/{sublayer}/id", handleID)
 	addRoute(router, "/{layer}/id/{id}", handleID)
+	addRoute(router, "/{layer}/{sublayer}/id/{id}", handleID)
 
 	addRoute(router, "/config", handleConfig)
 }
@@ -82,11 +94,22 @@ func handleDefault(w http.ResponseWriter, r *http.Request) *serverError {
 func handleLayer(w http.ResponseWriter, r *http.Request) *serverError {
 
 	layer := getRequestVar(routeVarLayer, r)
+	sublayer := getRequestVar(routeVarSubLayer, r)
 	wildcard := getRequestVar(routeVarWildcard, r)
 
 	if layer == "" {
 		return errorQueryToServer(data.ErrQueryMissingLayer)
 	}
+
+	fmt.Println(layer)
+	fmt.Println(sublayer)
+	fmt.Println(wildcard)
+
+	if sublayer != "" {
+		layer = fmt.Sprintf("%s/%s", layer, sublayer)
+	}
+
+	fmt.Println(layer)
 
 	if !data.QueryHandler.HasLayer(layer) {
 		return errorQueryToServer(data.ErrQueryInvalidLayer)
@@ -102,7 +125,12 @@ func handleLayer(w http.ResponseWriter, r *http.Request) *serverError {
 func handlePoint(w http.ResponseWriter, r *http.Request) *serverError {
 
 	layer := getRequestVar(routeVarLayer, r)
+	sublayer := getRequestVar(routeVarSubLayer, r)
 	point := getRequestVar(routeVarPoint, r)
+
+	if sublayer != "" {
+		layer = fmt.Sprintf("%s/%s", layer, sublayer)
+	}
 
 	features, err := data.QueryHandler.Point(layer, point)
 	if err != nil {
@@ -115,7 +143,12 @@ func handlePoint(w http.ResponseWriter, r *http.Request) *serverError {
 func handleBBox(w http.ResponseWriter, r *http.Request) *serverError {
 
 	layer := getRequestVar(routeVarLayer, r)
+	sublayer := getRequestVar(routeVarSubLayer, r)
 	bbox := getRequestVar(routeVarBBox, r)
+
+	if sublayer != "" {
+		layer = fmt.Sprintf("%s/%s", layer, sublayer)
+	}
 
 	features, err := data.QueryHandler.BBox(layer, bbox)
 	if err != nil {
@@ -128,9 +161,14 @@ func handleBBox(w http.ResponseWriter, r *http.Request) *serverError {
 func handleTile(w http.ResponseWriter, r *http.Request) *serverError {
 
 	layer := getRequestVar(routeVarLayer, r)
+	sublayer := getRequestVar(routeVarSubLayer, r)
 	tileX := getRequestVar(routeVarTileX, r)
 	tileY := getRequestVar(routeVarTileY, r)
 	tileZ := getRequestVar(routeVarTileZ, r)
+
+	if sublayer != "" {
+		layer = fmt.Sprintf("%s/%s", layer, sublayer)
+	}
 
 	features, err := data.QueryHandler.Tile(layer, tileX, tileY, tileZ)
 	if err != nil {
@@ -143,7 +181,12 @@ func handleTile(w http.ResponseWriter, r *http.Request) *serverError {
 func handleID(w http.ResponseWriter, r *http.Request) *serverError {
 
 	layer := getRequestVar(routeVarLayer, r)
+	sublayer := getRequestVar(routeVarSubLayer, r)
 	id := getRequestVar(routeVarID, r)
+
+	if sublayer != "" {
+		layer = fmt.Sprintf("%s/%s", layer, sublayer)
+	}
 
 	features, err := data.QueryHandler.ID(layer, id)
 	if err != nil {
