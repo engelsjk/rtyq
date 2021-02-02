@@ -49,8 +49,7 @@ func (l *Layer) CheckData() error {
 	var minFilesize int64 = math.MaxInt64
 	var maxFilesize int64 = math.MinInt64
 
-	fmt.Printf("layer (%s)\n", l.Name)
-	fmt.Printf("checking data path...\n")
+	fmt.Printf("checking data...")
 
 	progress := progressbar.Default(-1)
 
@@ -85,6 +84,7 @@ func (l *Layer) CheckData() error {
 	}
 
 	fmt.Println() // print new line after progress bar
+	fmt.Println("done")
 	fmt.Printf("files found: %d\n", numFiles)
 	fmt.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize) // convert to KB (bytes/1024)
 
@@ -100,16 +100,19 @@ func (l *Layer) CreateDatabase() error {
 	}
 
 	// log
-	fmt.Printf("creating db %s...\n", filename(l.DBFilepath))
+	fmt.Printf("creating db...")
 
 	_, err := buntdb.Open(l.DBFilepath)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("done")
+
 	return nil
 }
 
-func (l *Layer) LoadDatabase() error {
+func (l *Layer) OpenDatabase() error {
 
 	if !fileExists(l.DBFilepath) {
 		return fmt.Errorf("database file does not exists")
@@ -117,13 +120,16 @@ func (l *Layer) LoadDatabase() error {
 	l.db = nil
 
 	// log
-	fmt.Printf("loading db %s...\n", filename(l.DBFilepath))
+	fmt.Printf("opening db...")
 
 	bdb, err := buntdb.Open(l.DBFilepath)
 	if err != nil {
 		return err
 	}
 	l.db = bdb
+
+	fmt.Println("done")
+
 	return nil
 }
 
@@ -143,7 +149,7 @@ func (l *Layer) AddDataToDatabase() error {
 	}
 
 	// log
-	fmt.Printf("uploading data to db %s...\n", filename(l.DBFilepath))
+	fmt.Printf("uploading data to db...")
 
 	numLoadErrors := 0
 	numUpdateErrors := 0
@@ -182,6 +188,7 @@ func (l *Layer) AddDataToDatabase() error {
 		return err
 	}
 	fmt.Println() // print new line after progress bar
+	fmt.Println("done")
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
 		fmt.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
 	}
@@ -191,8 +198,14 @@ func (l *Layer) AddDataToDatabase() error {
 
 func (l *Layer) IndexDatabase() error {
 	// log
-	fmt.Printf("indexing db %s...\n", filename(l.DBFilepath))
-	return l.db.CreateSpatialIndex(l.DBIndex, dbPattern(l.DBIndex), buntdb.IndexRect)
+	fmt.Printf("indexing db...")
+
+	err := l.db.CreateSpatialIndex(l.DBIndex, dbPattern(l.DBIndex), buntdb.IndexRect)
+	if err != nil {
+		return err
+	}
+	fmt.Println("done")
+	return nil
 }
 
 func (l *Layer) intersects(o interface{}) ([]geojson.Feature, error) {

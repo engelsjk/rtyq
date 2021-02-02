@@ -72,6 +72,8 @@ func check() {
 
 		layer := data.NewLayer(confLayer)
 
+		fmt.Printf("checking layer: %s\n", layer.Name)
+
 		if err := layer.CheckData(); err != nil {
 			// log error
 			fmt.Println(err)
@@ -85,13 +87,15 @@ func create() {
 
 		layer := data.NewLayer(confLayer)
 
+		fmt.Printf("creating layer: %s\n", layer.Name)
+
 		if err := layer.CreateDatabase(); err != nil {
 			// log error
 			fmt.Println(err)
 			continue
 		}
 
-		if err := layer.LoadDatabase(); err != nil {
+		if err := layer.OpenDatabase(); err != nil {
 			// log error
 			fmt.Println(err)
 			continue
@@ -113,8 +117,11 @@ func start() {
 func load() {
 	for _, confLayer := range conf.Configuration.Layers {
 		layer := data.NewLayer(confLayer)
+		
+		fmt.Printf("loading layer: %s\n", layer.Name)
+
 		// todo: check if data dir exists
-		if err := layer.LoadDatabase(); err != nil {
+		if err := layer.OpenDatabase(); err != nil {
 			// log error
 			fmt.Println(err)
 			continue

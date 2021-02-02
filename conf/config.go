@@ -75,8 +75,6 @@ type LayerDatabase struct {
 
 func InitConfig(configFilename string) {
 
-	fmt.Println(configFilename)
-
 	setDefaultConfig()
 
 	isExplicitConfigFile := configFilename != ""
@@ -108,6 +106,4 @@ func InitConfig(configFilename string) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-
-	fmt.Printf("config: %+v\n", Configuration)
 }
