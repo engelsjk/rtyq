@@ -2,9 +2,9 @@ package conf
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 // var (
@@ -95,15 +95,15 @@ func InitConfig(configFilename string) {
 		isUseDefaultConfig := isConfigFileNotFound && !isExplicitConfigFile
 		if isUseDefaultConfig {
 			confFile = "DEFAULT"
-			zap.L().Error(errConfRead.Error())
+			log.Print(errConfRead.Error())
 		} else {
-			zap.L().Fatal(errConfRead.Error())
+			log.Fatalf(errConfRead.Error())
 		}
 	}
 
-	zap.L().Info("using config file", zap.String("filename", confFile))
+	log.Printf("using config file %s", confFile)
 	err = viper.Unmarshal(&Configuration)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalf(err.Error())
 	}
 }
