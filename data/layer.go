@@ -6,11 +6,11 @@ import (
 
 	"github.com/engelsjk/rtyq/conf"
 	"github.com/karrick/godirwalk"
-	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
 	"github.com/schollz/progressbar/v3"
 	"github.com/tidwall/buntdb"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/geojson"
 )
 
 type Layer struct {
@@ -248,12 +248,22 @@ func resolve(layer *Layer, k string, o interface{}) *geojson.Feature {
 	}
 
 	switch v := o.(type) {
-	case orb.Point:
-		if pointInFeature(f.Geometry, v) {
+	case geom.Point:
+		if pointInFeature(v, f) {
 			return f
 		}
 	case maptile.Tile:
-		if tileOverlapsGeometry(f.Geometry, v) {
+		tileBounds := v.Bound()
+		b := geom.NewBounds(geom.XY)
+		b.SetCoords(
+			geom.Coord{
+				tileBounds.Min.Lon(), tileBounds.Min.Lat(),
+			},
+			geom.Coord{
+				tileBounds.Max.Lon(), tileBounds.Max.Lat(),
+			},
+		)
+		if geometryIntersectsFeature(b.Polygon(), f) {
 			return f
 		}
 	default:

@@ -4,22 +4,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/paulmach/orb"
 	"github.com/tidwall/buntdb"
 )
 
-func dbPointBounds(p orb.Point) string {
+func dbPointBounds(lon, lat float64) string {
 	// bounds = [lon lat]
 
 	var sb strings.Builder
 
-	lon := strconv.FormatFloat(p.Lon(), 'f', -1, 64)
-	lat := strconv.FormatFloat(p.Lat(), 'f', -1, 64)
-
 	sb.WriteString("[")
-	sb.WriteString(lon)
+	sb.WriteString(strconv.FormatFloat(lon, 'f', -1, 64))
 	sb.WriteString(" ")
-	sb.WriteString(lat)
+	sb.WriteString(strconv.FormatFloat(lat, 'f', -1, 64))
 	sb.WriteString("]")
 
 	bounds := sb.String()
@@ -27,24 +23,19 @@ func dbPointBounds(p orb.Point) string {
 	return bounds
 }
 
-func dbPolyBounds(b orb.Bound) string {
+func dbPolyBounds(minLon, minLat, maxLon, maxLat float64) string {
 	// bounds = [minLon minLat], [maxLon maxLat]
 
 	var sb strings.Builder
 
-	minLon := strconv.FormatFloat(b.Min.Lon(), 'f', -1, 64)
-	minLat := strconv.FormatFloat(b.Min.Lat(), 'f', -1, 64)
-	maxLon := strconv.FormatFloat(b.Max.Lon(), 'f', -1, 64)
-	maxLat := strconv.FormatFloat(b.Max.Lat(), 'f', -1, 64)
-
 	sb.WriteString("[")
-	sb.WriteString(minLon)
+	sb.WriteString(strconv.FormatFloat(minLon, 'f', -1, 64))
 	sb.WriteString(" ")
-	sb.WriteString(minLat)
+	sb.WriteString(strconv.FormatFloat(minLat, 'f', -1, 64))
 	sb.WriteString("], [")
-	sb.WriteString(maxLon)
+	sb.WriteString(strconv.FormatFloat(maxLon, 'f', -1, 64))
 	sb.WriteString(" ")
-	sb.WriteString(maxLat)
+	sb.WriteString(strconv.FormatFloat(maxLat, 'f', -1, 64))
 	sb.WriteString("]")
 
 	bounds := sb.String()

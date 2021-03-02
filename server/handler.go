@@ -244,8 +244,8 @@ func errorQueryToServer(err error) *serverError {
 		return serverErrorBadRequest(err, err.Error())
 	case data.ErrQueryInvalidBBox:
 		return serverErrorBadRequest(err, err.Error())
-	case data.ErrQueryExceededTileZoomLimit:
-		return serverErrorBadRequest(err, err.Error())
+	// case data.ErrQueryExceededTileZoomLimit:
+	// 	return serverErrorBadRequest(err, err.Error())
 	case data.ErrQueryRequest:
 		return serverErrorInternal(err, err.Error())
 	default:

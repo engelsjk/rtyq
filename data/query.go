@@ -5,26 +5,26 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/geojson"
 )
 
 var (
-	ErrQueryMissingLayer          error = fmt.Errorf("missing layer")
-	ErrQueryInvalidLayer          error = fmt.Errorf("invalid layer")
-	ErrQueryMissingQuery          error = fmt.Errorf("missing query")
-	ErrQueryInvalidQuery          error = fmt.Errorf("invalid query")
-	ErrQueryMissingID             error = fmt.Errorf("missing id")
-	ErrQueryInvalidID             error = fmt.Errorf("invalid id")
-	ErrQueryMissingPoint          error = fmt.Errorf("missing point")
-	ErrQueryInvalidPoint          error = fmt.Errorf("invalid point")
-	ErrQueryMissingTile           error = fmt.Errorf("missing tile")
-	ErrQueryInvalidTile           error = fmt.Errorf("invalid tile")
-	ErrQueryMissingBBox           error = fmt.Errorf("missing bbox")
-	ErrQueryInvalidBBox           error = fmt.Errorf("invalid bbox")
-	ErrQueryExceededTileZoomLimit error = fmt.Errorf("exceeded tile zoom limit")
-	ErrQueryRequest               error = fmt.Errorf("unable to make request")
+	ErrQueryMissingLayer error = fmt.Errorf("missing layer")
+	ErrQueryInvalidLayer error = fmt.Errorf("invalid layer")
+	ErrQueryMissingQuery error = fmt.Errorf("missing query")
+	ErrQueryInvalidQuery error = fmt.Errorf("invalid query")
+	ErrQueryMissingID    error = fmt.Errorf("missing id")
+	ErrQueryInvalidID    error = fmt.Errorf("invalid id")
+	ErrQueryMissingPoint error = fmt.Errorf("missing point")
+	ErrQueryInvalidPoint error = fmt.Errorf("invalid point")
+	ErrQueryMissingTile  error = fmt.Errorf("missing tile")
+	ErrQueryInvalidTile  error = fmt.Errorf("invalid tile")
+	ErrQueryMissingBBox  error = fmt.Errorf("missing bbox")
+	ErrQueryInvalidBBox  error = fmt.Errorf("invalid bbox")
+	// ErrQueryExceededTileZoomLimit error = fmt.Errorf("exceeded tile zoom limit")
+	ErrQueryRequest error = fmt.Errorf("unable to make request")
 )
 
 var QueryHandler Query
@@ -128,9 +128,9 @@ func (q Query) Tile(layer, x, y, z string) (*[]geojson.Feature, error) {
 		return &[]geojson.Feature{}, ErrQueryInvalidTile
 	}
 
-	if int(tile.Z) < q.layers[layer].ZoomLimit {
-		return &[]geojson.Feature{}, ErrQueryExceededTileZoomLimit
-	}
+	// if int(tile.Z) < q.layers[layer].ZoomLimit {
+	// 	return &[]geojson.Feature{}, ErrQueryExceededTileZoomLimit
+	// }
 
 	features, err := q.layers[layer].intersects(*tile)
 	if err != nil {
@@ -172,7 +172,7 @@ func (q Query) ID(layer, id string) (*[]geojson.Feature, error) {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-func parsePoint(pt string) *orb.Point {
+func parsePoint(pt string) *geom.Point {
 
 	// todo: better latlon string validation?
 
@@ -193,7 +193,9 @@ func parsePoint(pt string) *orb.Point {
 		return nil
 	}
 
-	return &orb.Point{lon, lat}
+	point := geom.NewPoint(geom.XY).MustSetCoords(geom.Coord{lon, lat})
+
+	return point
 }
 
 func parseBBox(bb string) string {

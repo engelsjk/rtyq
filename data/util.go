@@ -2,15 +2,16 @@ package data
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
+	"github.com/twpayne/go-geom"
+	"github.com/twpayne/go-geom/encoding/geojson"
 )
 
 // paths
@@ -78,7 +79,8 @@ func feature(path string) (*geojson.Feature, int64, error) {
 
 	b := buf.Bytes()
 
-	f, err := geojson.UnmarshalFeature(b)
+	f := &geojson.Feature{}
+	err = json.Unmarshal(b, f)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -133,16 +135,18 @@ func fid(f *geojson.Feature, key string) string {
 func bounds(o interface{}) string {
 
 	var bounds string
-
 	switch v := o.(type) {
-	case orb.Point:
-		bounds = dbPointBounds(v)
-	case orb.Polygon:
-		bounds = dbPolyBounds(v.Bound())
-	case orb.MultiPolygon:
-		bounds = dbPolyBounds(v.Bound())
+	case geom.Point:
+		bounds = dbPointBounds(v.X(), v.Y())
+	case geom.Polygon:
+		b := v.Bounds()
+		bounds = dbPolyBounds(b.Min(0), b.Min(1), b.Max(0), b.Max(1))
+	case geom.MultiPolygon:
+		b := v.Bounds()
+		bounds = dbPolyBounds(b.Min(0), b.Min(1), b.Max(0), b.Max(1))
 	case maptile.Tile:
-		bounds = dbPolyBounds(v.Bound())
+		b := v.Bound()
+		bounds = dbPolyBounds(b.Min.Lon(), b.Min.Lat(), b.Max.Lon(), b.Max.Lat())
 	default:
 		// log unknown type
 	}
