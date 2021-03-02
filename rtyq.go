@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,7 +11,6 @@ import (
 	"github.com/engelsjk/rtyq/conf"
 	"github.com/engelsjk/rtyq/data"
 	"github.com/engelsjk/rtyq/server"
-	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -27,8 +26,6 @@ var startCmd *kingpin.CmdClause
 var startFlagConfigFilename *string
 var startFlagDebugOn *bool
 
-var logger *zap.Logger
-
 func initCommandOptions() {
 
 	checkCmd = app.Command("check", "check data path")
@@ -43,9 +40,6 @@ func initCommandOptions() {
 }
 
 func main() {
-
-	// logger, _ = zap.NewDevelopment()
-	// defer logger.Sync()
 
 	app = kingpin.New(conf.AppConfig.Name, conf.AppConfig.Help).Version(conf.AppConfig.Version)
 
@@ -72,11 +66,11 @@ func check() {
 
 		layer := data.NewLayer(confLayer)
 
-		fmt.Printf("checking layer: %s\n", layer.Name)
+		log.Printf("checking layer: %s\n", layer.Name)
 
 		if err := layer.CheckData(); err != nil {
 			// log error
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 	}
@@ -87,23 +81,20 @@ func create() {
 
 		layer := data.NewLayer(confLayer)
 
-		fmt.Printf("creating layer: %s\n", layer.Name)
+		log.Printf("creating layer: %s\n", layer.Name)
 
 		if err := layer.CreateDatabase(); err != nil {
-			// log error
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 
 		if err := layer.OpenDatabase(); err != nil {
-			// log error
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 
 		if err := layer.AddDataToDatabase(); err != nil {
-			// log error
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 	}
@@ -117,18 +108,16 @@ func start() {
 func load() {
 	for _, confLayer := range conf.Configuration.Layers {
 		layer := data.NewLayer(confLayer)
-		
-		fmt.Printf("loading layer: %s\n", layer.Name)
+
+		log.Printf("loading layer: %s\n", layer.Name)
 
 		// todo: check if data dir exists
 		if err := layer.OpenDatabase(); err != nil {
-			// log error
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 		if err := layer.IndexDatabase(); err != nil {
-			// log error
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 		data.AddLayerToQueryHandler(layer)
@@ -141,17 +130,17 @@ func serve() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			// log
+			log.Println(err)
 		}
 	}()
 
-	fmt.Printf("listening at %s\n", srv.Addr)
+	log.Printf("listening at %s\n", srv.Addr)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 	<-sig
 
-	// log shut down
+	log.Println("server is shutting down")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -160,6 +149,6 @@ func serve() {
 	abortTimeoutSec := conf.Configuration.Server.WriteTimeoutSec + 10
 	chanCancelFatal := server.FatalAfter(abortTimeoutSec, "timeout on shutdown - aborting")
 
-	// log server stopped
+	log.Println("server is stopped")
 	close(chanCancelFatal)
 }

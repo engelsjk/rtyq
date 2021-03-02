@@ -101,15 +101,9 @@ func handleLayer(w http.ResponseWriter, r *http.Request) *serverError {
 		return errorQueryToServer(data.ErrQueryMissingLayer)
 	}
 
-	fmt.Println(layer)
-	fmt.Println(sublayer)
-	fmt.Println(wildcard)
-
 	if sublayer != "" {
 		layer = fmt.Sprintf("%s/%s", layer, sublayer)
 	}
-
-	fmt.Println(layer)
 
 	if !data.QueryHandler.HasLayer(layer) {
 		return errorQueryToServer(data.ErrQueryInvalidLayer)

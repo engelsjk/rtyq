@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/engelsjk/rtyq/conf"
@@ -41,7 +42,6 @@ func NewLayer(layer conf.Layer) *Layer {
 func (l *Layer) CheckData() error {
 
 	if !dirExists(l.DataDir) {
-		// log error
 		return fmt.Errorf("data dir does not exist")
 	}
 
@@ -49,7 +49,7 @@ func (l *Layer) CheckData() error {
 	var minFilesize int64 = math.MaxInt64
 	var maxFilesize int64 = math.MinInt64
 
-	fmt.Printf("checking data...")
+	log.Printf("checking data...")
 
 	progress := progressbar.Default(-1)
 
@@ -83,10 +83,10 @@ func (l *Layer) CheckData() error {
 		return err
 	}
 
-	fmt.Println() // print new line after progress bar
-	fmt.Println("done")
-	fmt.Printf("files found: %d\n", numFiles)
-	fmt.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize) // convert to KB (bytes/1024)
+	log.Println() // print new line after progress bar
+	log.Println("done")
+	log.Printf("files found: %d\n", numFiles)
+	log.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize) // convert to KB (bytes/1024)
 
 	return nil
 }
@@ -99,15 +99,14 @@ func (l *Layer) CreateDatabase() error {
 		return fmt.Errorf("database file already exists")
 	}
 
-	// log
-	fmt.Printf("creating db...")
+	log.Printf("creating db...")
 
 	_, err := buntdb.Open(l.DBFilepath)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("done")
+	log.Println("done")
 
 	return nil
 }
@@ -119,8 +118,7 @@ func (l *Layer) OpenDatabase() error {
 	}
 	l.db = nil
 
-	// log
-	fmt.Printf("opening db...")
+	log.Printf("opening db...")
 
 	bdb, err := buntdb.Open(l.DBFilepath)
 	if err != nil {
@@ -128,7 +126,7 @@ func (l *Layer) OpenDatabase() error {
 	}
 	l.db = bdb
 
-	fmt.Println("done")
+	log.Println("done")
 
 	return nil
 }
@@ -136,20 +134,16 @@ func (l *Layer) OpenDatabase() error {
 func (l *Layer) AddDataToDatabase() error {
 
 	if !dirExists(l.DataDir) {
-		// log error
 		return fmt.Errorf("data dir does not exist")
 	}
 	if !fileExists(l.DBFilepath) {
-		// log error
 		return fmt.Errorf("database file does not exist")
 	}
 	if l.db == nil {
-		// log error
 		return fmt.Errorf("database not loaded")
 	}
 
-	// log
-	fmt.Printf("uploading data to db...")
+	log.Printf("uploading data to db...")
 
 	numLoadErrors := 0
 	numUpdateErrors := 0
@@ -187,24 +181,23 @@ func (l *Layer) AddDataToDatabase() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println() // print new line after progress bar
-	fmt.Println("done")
+	log.Println() // print new line after progress bar
+	log.Println("done")
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
-		fmt.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
+		log.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
 	}
-	fmt.Printf("%d files loaded to db: %d\n", numFiles, filename(l.DBFilepath))
+	log.Printf("%d files loaded to db: %d\n", numFiles, filename(l.DBFilepath))
 	return nil
 }
 
 func (l *Layer) IndexDatabase() error {
-	// log
-	fmt.Printf("indexing db...")
+	log.Printf("indexing db...")
 
 	err := l.db.CreateSpatialIndex(l.DBIndex, dbPattern(l.DBIndex), buntdb.IndexRect)
 	if err != nil {
 		return err
 	}
-	fmt.Println("done")
+	log.Println("done")
 	return nil
 }
 
