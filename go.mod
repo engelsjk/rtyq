@@ -27,7 +27,7 @@ require (
 	github.com/tidwall/match v1.0.2 // indirect
 	github.com/twpayne/go-geom v1.3.6
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
