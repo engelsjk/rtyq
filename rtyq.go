@@ -11,7 +11,6 @@ import (
 	"github.com/engelsjk/rtyq/conf"
 	"github.com/engelsjk/rtyq/data"
 	"github.com/engelsjk/rtyq/server"
-	"go.uber.org/zap"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -27,8 +26,6 @@ var startCmd *kingpin.CmdClause
 var startFlagConfigFilename *string
 var startFlagDebugOn *bool
 
-var logger *zap.Logger
-
 func initCommandOptions() {
 
 	checkCmd = app.Command("check", "check data path")
@@ -43,9 +40,6 @@ func initCommandOptions() {
 }
 
 func main() {
-
-	// logger, _ = zap.NewDevelopment()
-	// defer logger.Sync()
 
 	app = kingpin.New(conf.AppConfig.Name, conf.AppConfig.Help).Version(conf.AppConfig.Version)
 
@@ -117,7 +111,7 @@ func start() {
 func load() {
 	for _, confLayer := range conf.Configuration.Layers {
 		layer := data.NewLayer(confLayer)
-		
+
 		fmt.Printf("loading layer: %s\n", layer.Name)
 
 		// todo: check if data dir exists
