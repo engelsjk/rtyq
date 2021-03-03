@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/engelsjk/rtyq/conf"
+	"github.com/engelsjk/rtyq/pkg/conf"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 )

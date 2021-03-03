@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/engelsjk/rtyq/conf"
-	"github.com/engelsjk/rtyq/data"
+	"github.com/engelsjk/rtyq/pkg/conf"
+	"github.com/engelsjk/rtyq/pkg/data"
 	"github.com/go-chi/chi"
 )
 

@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/engelsjk/rtyq/conf"
-	"github.com/engelsjk/rtyq/data"
-	"github.com/engelsjk/rtyq/server"
+	"github.com/engelsjk/rtyq/pkg/conf"
+	"github.com/engelsjk/rtyq/pkg/data"
+	"github.com/engelsjk/rtyq/pkg/server"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -63,11 +63,8 @@ func main() {
 
 func check() {
 	for _, confLayer := range conf.Configuration.Layers {
-
 		layer := data.NewLayer(confLayer)
-
 		log.Printf("checking layer: %s\n", layer.Name)
-
 		if err := layer.CheckData(); err != nil {
 			// log error
 			log.Println(err)
@@ -80,7 +77,6 @@ func create() {
 	for _, confLayer := range conf.Configuration.Layers {
 
 		layer := data.NewLayer(confLayer)
-
 		log.Printf("creating layer: %s\n", layer.Name)
 
 		if err := layer.CreateDatabase(); err != nil {

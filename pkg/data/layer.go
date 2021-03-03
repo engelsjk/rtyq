@@ -5,7 +5,7 @@ import (
 	"log"
 	"math"
 
-	"github.com/engelsjk/rtyq/conf"
+	"github.com/engelsjk/rtyq/pkg/conf"
 	"github.com/karrick/godirwalk"
 	"github.com/paulmach/orb/maptile"
 	"github.com/schollz/progressbar/v3"
