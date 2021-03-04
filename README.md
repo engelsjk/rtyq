@@ -27,7 +27,7 @@ Rtyq uses a hybrid data model for querying geometry data in order to resolve fea
 ## Install
 
 ```
-go get -u github.com/engelsjk/rtyq/cmd/rtyq
+go get github.com/engelsjk/rtyq
 ```
 
 ## Create
