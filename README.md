@@ -8,7 +8,7 @@ Rtyq is a command-line tool used to create spatially indexed databases of polygo
 ## Install
 
 ```
-go get -u github.com/engelsjk/rtyq/cmd/rtyq
+go get github.com/engelsjk/rtyq
 ```
 
 ## Run
