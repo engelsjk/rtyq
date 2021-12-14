@@ -42,7 +42,6 @@ func NewLayer(layer conf.Layer) *Layer {
 func (l *Layer) CheckData() error {
 
 	if !dirExists(l.DataDir) {
-		// log error
 		return fmt.Errorf("data dir does not exist")
 	}
 
@@ -61,8 +60,7 @@ func (l *Layer) CheckData() error {
 				progress.Add(1)
 
 				if !validExtension(path, l.DataExt) {
-					// log error
-					return nil // or return error to skip?
+					return nil
 				}
 
 				nbytes, _, _, err := read(path, l.DataID)
@@ -84,10 +82,10 @@ func (l *Layer) CheckData() error {
 		return err
 	}
 
-	log.Println() // print new line after progress bar
+	log.Println() // todo: print new line after progress bar
 	log.Println("done")
 	log.Printf("files found: %d\n", numFiles)
-	log.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize) // convert to KB (bytes/1024)
+	log.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize) // todo: convert to KB (bytes/1024)
 
 	return nil
 }
@@ -144,7 +142,6 @@ func (l *Layer) AddDataToDatabase() error {
 		return fmt.Errorf("database not loaded")
 	}
 
-	// log
 	log.Printf("uploading data to db...")
 
 	numLoadErrors := 0
@@ -183,12 +180,12 @@ func (l *Layer) AddDataToDatabase() error {
 	if err != nil {
 		return err
 	}
-	log.Println() // print new line after progress bar
+	log.Println() // todo: print new line after progress bar
 	log.Println("done")
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
 		log.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
 	}
-	log.Printf("%d files loaded to db: %d\n", numFiles, filename(l.DBFilepath))
+	log.Printf("%d files loaded to db: %s\n", numFiles, filename(l.DBFilepath))
 	return nil
 }
 

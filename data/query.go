@@ -98,15 +98,20 @@ func (q Query) BBox(layer, bb string) (*[]geojson.Feature, error) {
 	}
 
 	bbox := parseBBox(bb)
-	if bbox == "" {
+	if bbox.IsEmpty() {
 		return &[]geojson.Feature{}, ErrQueryInvalidBBox
 	}
 
-	// if len(features) == 0 {
-	// 	return &[]geojson.Feature{}, nil
-	// }
+	features, err := q.layers[layer].intersects(*bbox)
+	if err != nil {
+		return &[]geojson.Feature{}, ErrQueryRequest
+	}
 
-	return &[]geojson.Feature{}, nil
+	if len(features) == 0 {
+		return &[]geojson.Feature{}, nil
+	}
+
+	return &features, nil
 }
 
 func (q Query) Tile(layer, x, y, z string) (*[]geojson.Feature, error) {
@@ -158,7 +163,7 @@ func (q Query) ID(layer, id string) (*[]geojson.Feature, error) {
 		return &[]geojson.Feature{}, ErrQueryMissingID
 	}
 
-	// add id validation if needed
+	// todo: add id validation if needed
 
 	fp := filePath(q.layers[layer].DataDir, id, q.layers[layer].DataExt)
 
@@ -196,8 +201,36 @@ func parsePoint(pt string) *orb.Point {
 	return &orb.Point{lon, lat}
 }
 
-func parseBBox(bb string) string {
-	return ""
+func parseBBox(bbox string) *orb.Bound {
+
+	bbox = strings.TrimSpace(bbox)
+	bb := strings.Split(bbox, ",")
+
+	if len(bb) != 4 {
+		return nil
+	}
+
+	lowLeftLon, err := strconv.ParseFloat(bb[0], 64)
+	if err != nil {
+		return nil
+	}
+	lowLeftLat, err := strconv.ParseFloat(bb[1], 64)
+	if err != nil {
+		return nil
+	}
+	upRightLon, err := strconv.ParseFloat(bb[2], 64)
+	if err != nil {
+		return nil
+	}
+	upRightLat, err := strconv.ParseFloat(bb[3], 64)
+	if err != nil {
+		return nil
+	}
+
+	return &orb.Bound{
+		Min: orb.Point{lowLeftLon, lowLeftLat},
+		Max: orb.Point{upRightLon, upRightLat},
+	}
 }
 
 func parseTile(xs, ys, zs string) *maptile.Tile {
