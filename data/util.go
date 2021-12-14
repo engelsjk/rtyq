@@ -51,12 +51,10 @@ func pathExists(path string) bool {
 // files
 
 func read(path, id string) (int64, string, string, error) {
-
 	f, nbytes, err := feature(path)
 	if err != nil {
 		return 0, "", "", err
 	}
-
 	return nbytes, fid(f, id), bounds(f.Geometry), nil
 }
 
@@ -109,14 +107,11 @@ func validExtension(path, ext string) bool {
 }
 
 func fid(f *geojson.Feature, key string) string {
-
 	id, ok := f.Properties[key]
 	if !ok {
 		return ""
 	}
-
 	var fid string
-
 	if v, ok := id.(string); ok {
 		fid = v
 	}
@@ -126,26 +121,22 @@ func fid(f *geojson.Feature, key string) string {
 	if v, ok := id.(float64); ok {
 		fid = strconv.FormatFloat(v, 'f', -1, 64)
 	}
-
 	return fid
 }
 
 func bounds(o interface{}) string {
-
-	var bounds string
-
 	switch v := o.(type) {
+	case orb.Bound:
+		return dbPolyBounds(v)
 	case orb.Point:
-		bounds = dbPointBounds(v)
+		return dbPointBounds(v)
 	case orb.Polygon:
-		bounds = dbPolyBounds(v.Bound())
+		return dbPolyBounds(v.Bound())
 	case orb.MultiPolygon:
-		bounds = dbPolyBounds(v.Bound())
+		return dbPolyBounds(v.Bound())
 	case maptile.Tile:
-		bounds = dbPolyBounds(v.Bound())
+		return dbPolyBounds(v.Bound())
 	default:
-		// log unknown type
+		return ""
 	}
-
-	return bounds
 }

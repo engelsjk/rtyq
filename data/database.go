@@ -9,7 +9,6 @@ import (
 )
 
 func dbPointBounds(p orb.Point) string {
-	// bounds = [lon lat]
 
 	var sb strings.Builder
 
@@ -28,7 +27,6 @@ func dbPointBounds(p orb.Point) string {
 }
 
 func dbPolyBounds(b orb.Bound) string {
-	// bounds = [minLon minLat], [maxLon maxLat]
 
 	var sb strings.Builder
 
