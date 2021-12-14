@@ -207,6 +207,7 @@ func (l *Layer) intersects(o interface{}) ([]geojson.Feature, error) {
 	if err := l.db.View(func(tx *buntdb.Tx) error {
 		tx.Intersects(l.DBIndex, bounds(o), func(k, v string) bool {
 			f := resolve(l, k, o)
+			// log.Printf("%+v\n", f)
 			if f != nil {
 				features = append(features, *f)
 			}
@@ -241,7 +242,11 @@ func resolve(layer *Layer, k string, o interface{}) *geojson.Feature {
 
 	switch v := o.(type) {
 	case orb.Point:
-		if pointInFeature(f.Geometry, v) {
+		if pointInGeometry(f.Geometry, v) {
+			return f
+		}
+	case orb.Bound:
+		if boundOverlapsGeometry(f.Geometry, v) {
 			return f
 		}
 	case maptile.Tile:

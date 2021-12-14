@@ -6,7 +6,7 @@ import (
 	"github.com/paulmach/orb/planar"
 )
 
-func pointInFeature(geom orb.Geometry, pt orb.Point) bool {
+func pointInGeometry(geom orb.Geometry, pt orb.Point) bool {
 	switch g := geom.(type) {
 	case orb.Polygon:
 		return planar.PolygonContains(g, pt)
@@ -17,9 +17,18 @@ func pointInFeature(geom orb.Geometry, pt orb.Point) bool {
 	}
 }
 
+// todo: this is a rough approximation
+// it ignores intermediate overlaps not at corners or center
+func boundOverlapsGeometry(geom orb.Geometry, bound orb.Bound) bool {
+	return boundCenterInGeometry(geom, bound) || boundCornersInGeometry(geom, bound)
+}
+
+// todo: this is a partial approximation
+// it ignores intermediate overlaps not at corners or center
+// however, it will uptile to a higher zoom and recheck overlaps
 func tileOverlapsGeometry(geom orb.Geometry, tile maptile.Tile) bool {
 
-	if tileCenterInFeature(geom, tile) && tileCornersInFeature(geom, tile) {
+	if boundCenterInGeometry(geom, tile.Bound()) && boundCornersInGeometry(geom, tile.Bound()) {
 		return true
 	}
 
@@ -36,25 +45,25 @@ func tileOverlapsGeometry(geom orb.Geometry, tile maptile.Tile) bool {
 
 func tilesetOverlapsGeometry(geom orb.Geometry, tileset maptile.Set) bool {
 	for t := range tileset {
-		if tileCenterInFeature(geom, t) {
+		if boundCenterInGeometry(geom, t.Bound()) {
 			return true
 		}
 	}
 	return false
 }
 
-func tileCornersInFeature(geom orb.Geometry, tile maptile.Tile) bool {
-	p := tile.Bound().ToPolygon()
+func boundCornersInGeometry(geom orb.Geometry, bound orb.Bound) bool {
+	p := bound.ToPolygon()
 	for _, pt := range p[0] {
-		if !pointInFeature(geom, pt) {
-			return false
+		if pointInGeometry(geom, pt) {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
-func tileCenterInFeature(geom orb.Geometry, tile maptile.Tile) bool {
-	return pointInFeature(geom, tile.Bound().Center())
+func boundCenterInGeometry(geom orb.Geometry, bound orb.Bound) bool {
+	return pointInGeometry(geom, bound.Center())
 }
 
 func uptile(set maptile.Set, n int) maptile.Set {

@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -101,6 +102,8 @@ func (q Query) BBox(layer, bb string) (*[]geojson.Feature, error) {
 	if bbox.IsEmpty() {
 		return &[]geojson.Feature{}, ErrQueryInvalidBBox
 	}
+
+	log.Printf("bbox: %+v\n", bbox)
 
 	features, err := q.layers[layer].intersects(*bbox)
 	if err != nil {

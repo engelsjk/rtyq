@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,53 +13,41 @@ import (
 	"github.com/engelsjk/rtyq/conf"
 	"github.com/engelsjk/rtyq/data"
 	"github.com/engelsjk/rtyq/server"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
-
-var app *kingpin.Application
-
-var checkCmd *kingpin.CmdClause
-var checkFlagConfigFilename *string
-
-var createCmd *kingpin.CmdClause
-var createFlagConfigFilename *string
-
-var startCmd *kingpin.CmdClause
-var startFlagConfigFilename *string
-var startFlagDebugOn *bool
-
-func initCommandOptions() {
-
-	checkCmd = app.Command("check", "check data path")
-	checkFlagConfigFilename = checkCmd.Flag("config", "config file").Short('c').String()
-
-	createCmd = app.Command("create", "create an rtree db from data")
-	createFlagConfigFilename = createCmd.Flag("config", "config file").Short('c').String()
-
-	startCmd = app.Command("start", "start api service")
-	startFlagConfigFilename = startCmd.Flag("config", "config file").Short('c').String()
-	startFlagDebugOn = startCmd.Flag("debug", "enable debug").Short('d').Default("false").Bool()
-}
 
 func main() {
 
-	app = kingpin.New(conf.AppConfig.Name, conf.AppConfig.Help).Version(conf.AppConfig.Version)
+	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
+	checkFlagConfigFilename := checkCmd.String("config", "config.json", "config file")
 
-	initCommandOptions()
+	createCmd := flag.NewFlagSet("create", flag.ExitOnError)
+	createFlagConfigFilename := createCmd.String("config", "config.json", "config file")
 
-	// if flagDebugOn || conf.Configuration.Server.Debug {}
+	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
+	startFlagConfigFilename := startCmd.String("config", "config.json", "config file")
+	// startFlagDebugOn := startCmd.Bool("debug", false, "enable debug")
 
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	case checkCmd.FullCommand():
+	if len(os.Args) < 2 {
+		fmt.Println("expected 'check', 'create' or 'start' subcommands")
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+	case "check":
+		checkCmd.Parse(os.Args[2:])
 		conf.InitConfig(*checkFlagConfigFilename)
 		check()
-	case createCmd.FullCommand():
+	case "create":
+		createCmd.Parse(os.Args[2:])
 		conf.InitConfig(*createFlagConfigFilename)
 		create()
-	case startCmd.FullCommand():
-		// what is happening here? why is the config filename flag empty?
+	case "start":
+		startCmd.Parse(os.Args[2:])
 		conf.InitConfig(*startFlagConfigFilename)
 		start()
+	default:
+		fmt.Println("expected 'check', 'create' or 'start' subcommands")
+		os.Exit(1)
 	}
 }
 
@@ -118,6 +108,8 @@ func load() {
 
 func serve() {
 
+	// todo: check if any layers available and exit if 0
+
 	srv := server.Create()
 
 	go func() {
@@ -126,7 +118,7 @@ func serve() {
 		}
 	}()
 
-	log.Printf("listening at %s\n", srv.Addr)
+	log.Printf("listening at http://%s\n", srv.Addr)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)

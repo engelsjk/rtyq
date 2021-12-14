@@ -202,6 +202,7 @@ func handleConfig(w http.ResponseWriter, r *http.Request) *serverError {
 	queries := []string{
 		"/{layer}/point/{point}",
 		"/{layer}/tile/{z}/{x}/{y}",
+		"/{layer}/bbox/{bbox}",
 		"/{layer}/id/{id}",
 	}
 
