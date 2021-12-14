@@ -25,7 +25,6 @@ func main() {
 
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
 	startFlagConfigFilename := startCmd.String("config", "config.json", "config file")
-	// startFlagDebugOn := startCmd.Bool("debug", false, "enable debug")
 
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'check', 'create' or 'start' subcommands")
@@ -108,7 +107,7 @@ func load() {
 
 func serve() {
 
-	// todo: check if any layers available and exit if 0
+	// todo: check layers and exit if none available
 
 	srv := server.Create()
 
