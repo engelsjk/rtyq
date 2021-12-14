@@ -3,7 +3,6 @@ package data
 import (
 	"bytes"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -128,7 +127,6 @@ func fid(f *geojson.Feature, key string) string {
 func bounds(o interface{}) string {
 	switch v := o.(type) {
 	case orb.Bound:
-		log.Printf("bound: %s\n", dbPolyBounds(v))
 		return dbPolyBounds(v)
 	case orb.Point:
 		return dbPointBounds(v)
@@ -137,7 +135,6 @@ func bounds(o interface{}) string {
 	case orb.MultiPolygon:
 		return dbPolyBounds(v.Bound())
 	case maptile.Tile:
-		log.Printf("tile: %s\n", dbPolyBounds(v.Bound()))
 		return dbPolyBounds(v.Bound())
 	default:
 		return ""

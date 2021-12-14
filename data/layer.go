@@ -207,7 +207,6 @@ func (l *Layer) intersects(o interface{}) ([]geojson.Feature, error) {
 	if err := l.db.View(func(tx *buntdb.Tx) error {
 		tx.Intersects(l.DBIndex, bounds(o), func(k, v string) bool {
 			f := resolve(l, k, o)
-			// log.Printf("%+v\n", f)
 			if f != nil {
 				features = append(features, *f)
 			}
