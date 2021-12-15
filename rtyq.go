@@ -91,8 +91,6 @@ func load() {
 
 		log.Printf("loading layer: %s\n", layer.Name)
 
-		// todo: check if data dir exists?
-
 		if err := layer.OpenDatabase(); err != nil {
 			log.Println(err)
 			continue
@@ -106,8 +104,6 @@ func load() {
 }
 
 func serve() {
-
-	// todo: check layers and exit if none available
 
 	srv := server.Create()
 

@@ -2,7 +2,6 @@ package data
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -103,8 +102,6 @@ func (q Query) BBox(layer, bb string) (*[]geojson.Feature, error) {
 		return &[]geojson.Feature{}, ErrQueryInvalidBBox
 	}
 
-	log.Printf("bbox: %+v\n", bbox)
-
 	features, err := q.layers[layer].intersects(*bbox)
 	if err != nil {
 		return &[]geojson.Feature{}, ErrQueryRequest
@@ -166,8 +163,6 @@ func (q Query) ID(layer, id string) (*[]geojson.Feature, error) {
 		return &[]geojson.Feature{}, ErrQueryMissingID
 	}
 
-	// todo: add id validation if needed
-
 	fp := filePath(q.layers[layer].DataDir, id, q.layers[layer].DataExt)
 
 	f, _, err := feature(fp)
@@ -181,8 +176,6 @@ func (q Query) ID(layer, id string) (*[]geojson.Feature, error) {
 ///////////////////////////////////////////////////////////////////////////////////////
 
 func parsePoint(pt string) *orb.Point {
-
-	// todo: better latlon string validation?
 
 	cleanLatLon := strings.ReplaceAll(pt, " ", "")
 	splitLatLon := strings.Split(cleanLatLon, ",")

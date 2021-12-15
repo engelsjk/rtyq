@@ -82,10 +82,10 @@ func (l *Layer) CheckData() error {
 		return err
 	}
 
-	log.Println() // todo: print new line after progress bar
+	log.Println()
 	log.Println("done")
 	log.Printf("files found: %d\n", numFiles)
-	log.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize) // todo: convert to KB (bytes/1024)
+	log.Printf("largest: %d | smallest: %d\n", maxFilesize, minFilesize)
 
 	return nil
 }
@@ -180,7 +180,7 @@ func (l *Layer) AddDataToDatabase() error {
 	if err != nil {
 		return err
 	}
-	log.Println() // todo: print new line after progress bar
+	log.Println()
 	log.Println("done")
 	if numLoadErrors > 0 || numUpdateErrors > 0 {
 		log.Printf("warning: %d load errors | %d update errors\n", numLoadErrors, numUpdateErrors)
@@ -239,19 +239,27 @@ func resolve(layer *Layer, k string, o interface{}) *geojson.Feature {
 		return nil
 	}
 
+	// note: orb.Bound and maptile.Tile will return f by default below.
+	// The database query ensures that the feature's bbox intersect
+	// with the bound/tile, even if their actual geometry may not.
+	// boundOverlapsGeometry and tileOverlapsGeometry would provide
+	// marginally better accuracy but at a performance cost.
+
 	switch v := o.(type) {
 	case orb.Point:
 		if pointInGeometry(f.Geometry, v) {
 			return f
 		}
 	case orb.Bound:
-		if boundOverlapsGeometry(f.Geometry, v) {
-			return f
-		}
+		return f
+		// if boundOverlapsGeometry(f.Geometry, v) {
+		// 	return f
+		// }
 	case maptile.Tile:
-		if tileOverlapsGeometry(f.Geometry, v) {
-			return f
-		}
+		return f
+		// if tileOverlapsGeometry(f.Geometry, v) {
+		// 	return f
+		// }
 	default:
 		return nil
 	}

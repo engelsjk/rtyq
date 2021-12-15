@@ -17,13 +17,13 @@ func pointInGeometry(geom orb.Geometry, pt orb.Point) bool {
 	}
 }
 
-// todo: this is a rough approximation
+// boundOverlapsGeometry is a rough approximation
 // it ignores intermediate overlaps not at corners or center
 func boundOverlapsGeometry(geom orb.Geometry, bound orb.Bound) bool {
 	return boundCenterInGeometry(geom, bound) || boundCornersInGeometry(geom, bound)
 }
 
-// todo: this is a partial approximation
+// tileOverlapsGeometry is a partial approximation
 // it ignores intermediate overlaps not at corners or center
 // however, it will uptile to a higher zoom and recheck overlaps
 func tileOverlapsGeometry(geom orb.Geometry, tile maptile.Tile) bool {
