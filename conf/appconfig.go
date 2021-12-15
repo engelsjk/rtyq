@@ -9,5 +9,5 @@ type AppConfiguration struct {
 var AppConfig = AppConfiguration{
 	Name:    "rtyq",
 	Help:    "generate and query in-memory spatial rtree",
-	Version: "0.2.0",
+	Version: "0.2.1",
 }
